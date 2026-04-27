@@ -1452,8 +1452,8 @@ tabs.forEach(function(t){var txt=t.textContent.trim();var show=allowed.some(func
 var topBtns=document.querySelectorAll('.topbar .bar-btn');
 topBtns.forEach(function(b){var t=b.title||b.textContent;if(t.indexOf('備份')>=0||t.indexOf('說明')>=0||t.indexOf('還原')>=0){b.style.display=role==='老闆'?'':'none'}});
 if(allowed.length>0){var firstTab=document.querySelector('.tab[style=""]')||document.querySelector('.tab');if(firstTab)firstTab.click()}
-document.getElementById('user-role-badge').textContent=role;
-if(role==='店長'){var badge=document.getElementById('user-store-badge');if(badge){var emp=staff.find(function(x){return x.id===empId});if(emp&&emp.store)badge.textContent=emp.store}}
+var _rb=document.getElementById('user-role-badge');if(_rb)_rb.textContent=role;
+if(role==='店長'){var badge=document.getElementById('user-store-badge');if(!badge)return;if(badge){var emp=staff.find(function(x){return x.id===empId});if(emp&&emp.store)badge.textContent=emp.store}}
 renderAll()}
 
 function logAudit(action,detail){auditLog.unshift({ts:new Date().toISOString(),user:curUser?curUser.user:'系統',role:curUser?curUser.role:'',action:action,detail:detail});if(auditLog.length>500)auditLog=auditLog.slice(0,500);saveAudit()}
@@ -2000,6 +2000,7 @@ function verifyPass(plain,hashed){if(!hashed||hashed.indexOf('hm$')!==0)return p
 function migratePasswords(){var migrated=0;userAccounts.forEach(function(a){if(a.pass&&a.pass.indexOf('hm$')!==0){a.pass=hashPass(a.pass);migrated++}});if(migrated>0){save();console.log('Migrated '+migrated+' passwords to hash')}}
 
 
+var AUTO_BACKUP_DEFAULT={target:'cloud',freq:8};
 function initAutoBackupDefault(){var setting=localStorage.getItem('hm_autobackup');if(!setting){localStorage.setItem('hm_autobackup',JSON.stringify(AUTO_BACKUP_DEFAULT));setting=JSON.stringify(AUTO_BACKUP_DEFAULT)}try{var cfg=JSON.parse(setting);if(cfg.freq>0){var ms=cfg.freq*3600000;autoBackupInterval=setInterval(function(){if(cfg.target==='cloud'||cfg.target==='both'){if(db)fbFullBackup()}if(cfg.target==='local'||cfg.target==='both'){autoBackup()}},ms);console.log('Auto backup: every '+cfg.freq+'h to '+cfg.target)}}catch(e){}}
 
 
@@ -2018,7 +2019,7 @@ setInterval(syncStatus,30000);setTimeout(syncStatus,3000);
 function importPOSRevenue(){if(!db){alert('請先連線Firebase');return}var yr=curY+1911;var mn=String(curM).padStart(2,'0');var store=schedStore||'總公司';db.collection('pos_orders').get().then(function(snap){var dailyRev={};var count=0;snap.forEach(function(doc){var d=doc.data();var dateStr=d.date||d.orderDate||'';if(!dateStr.startsWith(yr+'-'+mn))return;var total=d.total||d.amount||0;if(!dailyRev[dateStr])dailyRev[dateStr]=0;dailyRev[dateStr]+=total;count++});var imported=0;for(var dk2 in dailyRev){rev[dk2]=dailyRev[dk2];imported++}if(imported>0){save();renderSched();alert('匯入成功 '+imported+' 天');logAudit('POS','匯入 '+store+' '+yr+'/'+mn)}else{alert('找不到POS資料，可手動輸入')}}).catch(function(e){alert('POS連線失敗：'+e.message)})}
 
 // ===== ANONYMOUS AUTH =====
-function signInAnonymous(){if(!firebase.auth)return;try{firebase.auth().signInAnonymously().catch(function(){})}catch(e){}}
+function signInAnonymous(){try{if(typeof firebase==='undefined'||!firebase.auth)return Promise.resolve();return firebase.auth().signInAnonymously().catch(function(e){console.warn('Auth skip:',e.message);return Promise.resolve()})}catch(e){return Promise.resolve()}}
 
 </script>
 </body>
