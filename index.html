@@ -416,7 +416,7 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
     <div style="display:flex;align-items:center;gap:8px">
       <select class="bar-sel" id="perf-period" onchange="renderPerf()" style="background:var(--white);color:var(--gray6);border-color:var(--gray3)"></select>
       <select class="bar-sel" id="perf-store-filter" onchange="renderPerf()" style="background:var(--white);color:var(--gray6);border-color:var(--gray3)"><option value="全部">全部門市</option></select>
-      <button class="bar-btn b-emp" onclick="openPerfAdd()">＋ 新增考核</button>
+      <button class="bar-btn b-emp" onclick="openPerfAdd()">＋ 新增考核</button><button class="bar-btn" style="background:rgba(99,102,241,.12);border-color:#6366f1;color:#4f46e5" onclick="openPerfTemplateEditor()">⚙ 權重設定</button>
       <button class="bar-btn b-exp" onclick="exportPerfXLSX()">⬇ 匯出考績</button>
     </div>
   </div>
@@ -1172,7 +1172,7 @@ function clearFbConfig(){if(!confirm('確定清除？'))return;localStorage.remo
 function waitForFirebase(cb,retries){retries=retries||0;if(typeof firebase!=='undefined'){cb();return}if(retries>20){document.getElementById('fb-conn-status').textContent='SDK載入失敗，請確認網路後按Ctrl+Shift+R重新整理';return}document.getElementById('fb-conn-status').textContent='載入Firebase SDK... ('+(retries+1)+'/20)';setTimeout(function(){waitForFirebase(cb,retries+1)},500)}
 function saveFbConfig(){document.getElementById('fb-conn-status').textContent='正在載入...';waitForFirebase(function(){doSaveFbConfig()})}
 function doSaveFbConfig(){var c={apiKey:document.getElementById('fb-apiKey').value.trim(),authDomain:document.getElementById('fb-authDomain').value.trim(),projectId:document.getElementById('fb-projectId').value.trim(),databaseURL:document.getElementById('fb-databaseURL').value.trim(),storageBucket:document.getElementById('fb-storageBucket').value.trim(),appId:document.getElementById('fb-appId').value.trim(),env:document.getElementById('fb-env').value};if(!c.apiKey||!c.projectId){alert('請填API Key和Project ID');return}localStorage.setItem('hm_fb_cfg',JSON.stringify(c));fbEnv=c.env;document.getElementById('fb-conn-status').textContent='連線中...';initFirebase(c,function(ok,msg){document.getElementById('fb-conn-status').textContent=msg;if(ok)setTimeout(closeFbConfig,1200)})}
-function initFirebase(cfg,cb){if(typeof firebase==='undefined'){if(cb)cb(false,'Firebase SDK 未載入，請檢查網路連線後重新整理頁面');setStatus('SDK未載入',false);return}try{fbUnsubscribers.forEach(function(u){try{u()}catch(e){}});fbUnsubscribers=[];var app;try{app=firebase.app();if(app.options.projectId!==cfg.projectId){app.delete();app=firebase.initializeApp(cfg)}}catch(e){app=firebase.initializeApp(cfg)}db=firebase.firestore();setStatus('連線中...',false);var doPing=function(){db.collection(fbCol('settings')).doc('ping').get().then(function(){setStatus('Firebase同步中',true);if(cb)cb(true,'✓連線成功');setupRealtimeListeners();setTimeout(syncEmpStats,5000);setTimeout(migratePasswords,3000)}).catch(function(err){setStatus('錯誤',false);if(cb)cb(false,'失敗：'+err.message);db=null})};if(firebase.auth){firebase.auth().signInAnonymously().then(function(){doPing()}).catch(function(){doPing()})}else{doPing()}}catch(err){setStatus('錯誤',false);if(cb)cb(false,'初始化失敗：'+err.message)}}
+function initFirebase(cfg,cb){if(typeof firebase==='undefined'){if(cb)cb(false,'Firebase SDK 未載入，請檢查網路連線後重新整理頁面');setStatus('SDK未載入',false);return}try{fbUnsubscribers.forEach(function(u){try{u()}catch(e){}});fbUnsubscribers=[];var app;try{app=firebase.app();if(app.options.projectId!==cfg.projectId){app.delete();app=firebase.initializeApp(cfg)}}catch(e){app=firebase.initializeApp(cfg)}db=firebase.firestore();setStatus('連線中...',false);var doPing=function(){db.collection(fbCol('settings')).doc('ping').get().then(function(){setStatus('Firebase同步中',true);if(cb)cb(true,'✓連線成功');setupRealtimeListeners();setTimeout(syncEmpStats,5000);setTimeout(migratePasswords,3000);setTimeout(loadPerfTemplates,4000)}).catch(function(err){setStatus('錯誤',false);if(cb)cb(false,'失敗：'+err.message);db=null})};if(firebase.auth){firebase.auth().signInAnonymously().then(function(){doPing()}).catch(function(){doPing()})}else{doPing()}}catch(err){setStatus('錯誤',false);if(cb)cb(false,'初始化失敗：'+err.message)}}
 function setupRealtimeListeners(){if(!db)return;var u1=db.collection(fbCol('employees')).onSnapshot(function(s){if(!s.empty){var n=[];s.forEach(function(d){n.push(Object.assign({id:d.id},d.data()))});staff=n;autoFillEmpNo();renderAll()}});fbUnsubscribers.push(u1);var mk=(curY+1911)+'-'+pad(curM);var u2=db.collection(fbCol('schedules')).doc(mk).onSnapshot(function(d){if(d.exists){sched=d.data().data||{};renderSched()}});fbUnsubscribers.push(u2);var u3=db.collection(fbCol('revenue')).doc(mk).onSnapshot(function(d){if(d.exists){rev=d.data().data||{};renderSched()}});fbUnsubscribers.push(u3);var u4=db.collection(fbCol('settings')).doc('config').onSnapshot(function(d){if(d.exists){var x=d.data();if(x.SAL)Object.assign(SAL,x.SAL);if(x.INS)Object.assign(INS,x.INS);if(x.roleGrades)roleGrades=x.roleGrades;if(x.storeHours)storeHours=x.storeHours;if(x.attendRule)attendRule=x.attendRule;loadInsInputs()}});fbUnsubscribers.push(u4);var u5=db.collection(fbCol('hrdata')).doc('leave').onSnapshot(function(d){if(d.exists){var x=d.data();if(x.leaveRecords)leaveRecords=x.leaveRecords;if(x.leaveCarryover)leaveCarryover=x.leaveCarryover}});fbUnsubscribers.push(u5);var u6=db.collection(fbCol('hrdata')).doc('payHistory').onSnapshot(function(d){if(d.exists&&d.data().data)payHistory=d.data().data});fbUnsubscribers.push(u6);var u7=db.collection(fbCol('hrdata')).doc('records').onSnapshot(function(d){if(d.exists){var x=d.data();if(x.historyLog)historyLog=x.historyLog;if(x.bonusRecords)bonusRecords=x.bonusRecords;if(x.recruitRecords)recruitRecords=x.recruitRecords;if(x.punchApplies)punchApplies=x.punchApplies}});fbUnsubscribers.push(u7);var u8=db.collection(fbCol('hrdata')).doc('accounts').onSnapshot(function(d){if(d.exists&&d.data().userAccounts){userAccounts=d.data().userAccounts}});fbUnsubscribers.push(u8);var u9=db.collection(fbCol('hrdata')).doc('otRecords').onSnapshot(function(d){if(d.exists&&d.data().data){otRecords=d.data().data;localStorage.setItem('hm_otRecords',JSON.stringify(otRecords))}});fbUnsubscribers.push(u9);var u10=db.collection(fbCol('hrdata')).doc('punchRecords').onSnapshot(function(d){if(d.exists&&d.data().data){punchRecords=d.data().data;try{localStorage.setItem('hm_punch',JSON.stringify(punchRecords))}catch(e){}}});fbUnsubscribers.push(u10);var u11=db.collection(fbCol('hrdata')).doc('storeNotes').onSnapshot(function(d){if(d.exists&&d.data().data)storeNotes=d.data().data});fbUnsubscribers.push(u11);var u12=db.collection(fbCol('hrdata')).doc('preLeave').onSnapshot(function(d){if(d.exists&&d.data().data)preLeave=d.data().data});fbUnsubscribers.push(u12);var u13=db.collection(fbCol('hrdata')).doc('storeHours').onSnapshot(function(d){if(d.exists&&d.data().data)storeHours=d.data().data});fbUnsubscribers.push(u13);var u14=db.collection(fbCol('hrdata')).doc('probation').onSnapshot(function(d){if(d.exists){var x=d.data();if(x.data)probation=x.data;if(x.events)probEvents=x.events}});fbUnsubscribers.push(u14);var u15=db.collection(fbCol('performance')).doc('all').onSnapshot(function(d){if(d.exists&&d.data().data)perfReviews=d.data().data});fbUnsubscribers.push(u15);var u16=db.collection(fbCol('performance')).doc('events').onSnapshot(function(d){if(d.exists&&d.data().data)perfEvents=d.data().data});fbUnsubscribers.push(u16);var u17=db.collection(fbCol('hrdata')).doc('schedControl').onSnapshot(function(d){if(d.exists){var x=d.data();if(x.schedConfirm)schedConfirm=x.schedConfirm;if(x.schedLock)schedLock=x.schedLock}});fbUnsubscribers.push(u17);var u18=db.collection(fbCol('hrdata')).doc('auditLog').onSnapshot(function(d){if(d.exists&&d.data().data)auditLog=d.data().data});fbUnsubscribers.push(u18)}
 function save(){setTimeout(syncEmpStats,2000);localStorage.setItem('hm_otRecords',JSON.stringify(otRecords));try{localStorage.setItem('hm_punch',JSON.stringify(punchRecords))}catch(e){}localStorage.setItem('hrData',encData({s:sched,r:rev,sal:SAL,ins:INS,staff:staff,salItems:salItems,customPay:customPay,payNotes:payNotes,roleGrades:roleGrades,schedSal:schedSal,storeSupport:storeSupport,storeHours:storeHours,attendRule:attendRule,leaveRecords:leaveRecords,historyLog:historyLog,payHistory:payHistory,bonusRecords:bonusRecords,punchApplies:punchApplies,storeNotes:storeNotes,preLeave:preLeave,schedConfirm:schedConfirm,schedLock:schedLock,probation:probation,probEvents:probEvents,recruitRecords:recruitRecords,leaveCarryover:leaveCarryover,auditLog:auditLog,userAccounts:userAccounts}));if(db){var mk=(curY+1911)+'-'+pad(curM);db.collection(fbCol('schedules')).doc(mk).set({data:sched,year:curY+1911,month:curM}).catch(function(){});db.collection(fbCol('revenue')).doc(mk).set({data:rev,year:curY+1911,month:curM}).catch(function(){});db.collection(fbCol('settings')).doc('config').set({SAL:SAL,INS:INS,roleGrades:roleGrades,schedSal:schedSal,storeHours:storeHours,attendRule:attendRule},{merge:true}).catch(function(){});db.collection(fbCol('hrdata')).doc('leave').set({leaveRecords:leaveRecords,leaveCarryover:leaveCarryover||{}}).catch(function(){});db.collection(fbCol('hrdata')).doc('payHistory').set({data:payHistory||{}}).catch(function(){});db.collection(fbCol('hrdata')).doc('records').set({historyLog:historyLog||{},bonusRecords:bonusRecords||[],recruitRecords:recruitRecords||[],punchApplies:punchApplies||[],swapRecords:typeof swapRecords!=='undefined'?swapRecords:[]}).catch(function(){});db.collection(fbCol('hrdata')).doc('accounts').set({userAccounts:userAccounts}).catch(function(){});db.collection(fbCol('hrdata')).doc('storeHours').set({data:storeHours}).catch(function(){});db.collection(fbCol('hrdata')).doc('storeNotes').set({data:storeNotes}).catch(function(){});db.collection(fbCol('hrdata')).doc('preLeave').set({data:preLeave}).catch(function(){});db.collection(fbCol('hrdata')).doc('otRecords').set({data:otRecords}).catch(function(){});db.collection(fbCol('hrdata')).doc('punchRecords').set({data:punchRecords}).catch(function(){});db.collection(fbCol('hrdata')).doc('probation').set({data:probation,events:probEvents}).catch(function(){});db.collection(fbCol('hrdata')).doc('schedControl').set({schedConfirm:schedConfirm,schedLock:schedLock}).catch(function(){});db.collection(fbCol('hrdata')).doc('auditLog').set({data:auditLog}).catch(function(){})}}
 function saveStaff(){localStorage.setItem('hrData',encData({s:sched,r:rev,sal:SAL,ins:INS,staff:staff,salItems:salItems,customPay:customPay,payNotes:payNotes,roleGrades:roleGrades,schedSal:schedSal,storeSupport:storeSupport,storeHours:storeHours,attendRule:attendRule,leaveRecords:leaveRecords,historyLog:historyLog,payHistory:payHistory,bonusRecords:bonusRecords,punchApplies:punchApplies,storeNotes:storeNotes,preLeave:preLeave,schedConfirm:schedConfirm,schedLock:schedLock,probation:probation,probEvents:probEvents,recruitRecords:recruitRecords,leaveCarryover:leaveCarryover,auditLog:auditLog,userAccounts:userAccounts}));if(!db)return;var b=db.batch();staff.forEach(function(e){var r=db.collection(fbCol('employees')).doc(e.id);b.set(r,Object.assign({},e,{_store:e.store||'',_active:!e.leave_date}))});b.commit().catch(function(){})}
@@ -1336,13 +1336,33 @@ function importXLSX(input){var file=input.files[0];if(!file)return;var reader=ne
 // ════════════════════════════════════════════════
 //  TAB 5 — 員工考績表
 // ════════════════════════════════════════════════
-var PERF_ITEMS=[
+var PERF_TEMPLATES={
+'新進員工':[
+  {key:'learn',label:'學習態度',weight:30,subs:[{k:'ln1',n:'主動學習意願'},{k:'ln2',n:'接受指導態度'},{k:'ln3',n:'錯誤改善速度'},{k:'ln4',n:'主動發問'},{k:'ln5',n:'成長進步幅度'}]},
+  {key:'basic',label:'基本技能',weight:25,subs:[{k:'bs1',n:'SOP執行力'},{k:'bs2',n:'出餐速度'},{k:'bs3',n:'品質穩定度'},{k:'bs4',n:'設備操作'},{k:'bs5',n:'清潔作業'}]},
+  {key:'attend_n',label:'出勤紀律',weight:25,auto:true,subs:[{k:'an1',n:'準時出勤'},{k:'an2',n:'請假規範'},{k:'an3',n:'儀容整潔'},{k:'an4',n:'手機規範'},{k:'an5',n:'交接確實'}]},
+  {key:'hygiene_n',label:'衛生安全',weight:10,subs:[{k:'hn1',n:'食品安全觀念'},{k:'hn2',n:'洗手規範'},{k:'hn3',n:'清潔習慣'},{k:'hn4',n:'溫度紀錄'},{k:'hn5',n:'安全意識'}]},
+  {key:'adapt',label:'團隊適應',weight:10,subs:[{k:'ad1',n:'融入團隊'},{k:'ad2',n:'溝通表達'},{k:'ad3',n:'配合度'},{k:'ad4',n:'情緒穩定'},{k:'ad5',n:'服務態度'}]}
+],
+'正職人員':[
   {key:'attitude',label:'工作態度',weight:20,subs:[{k:'att1',n:'主動積極'},{k:'att2',n:'責任感'},{k:'att3',n:'抗壓性'},{k:'att4',n:'服務熱忱'},{k:'att5',n:'配合度'}]},
-  {key:'skill',label:'學習能力',weight:20,subs:[{k:'sk1',n:'專業技術'},{k:'sk2',n:'錯誤改善'},{k:'sk3',n:'主動發問'},{k:'sk4',n:'SOP落實'},{k:'sk5',n:'成長進步'}]},
+  {key:'skill',label:'專業技能',weight:20,subs:[{k:'sk1',n:'專業技術'},{k:'sk2',n:'出餐效率'},{k:'sk3',n:'品質控管'},{k:'sk4',n:'SOP落實'},{k:'sk5',n:'問題解決'}]},
   {key:'attendance',label:'出勤紀律',weight:20,auto:true,subs:[{k:'at1',n:'準時出勤'},{k:'at2',n:'請假規範'},{k:'at3',n:'儀容整潔'},{k:'at4',n:'手機規範'},{k:'at5',n:'交接確實'}]},
   {key:'hygiene',label:'衛生安全',weight:20,subs:[{k:'hy1',n:'食品安全'},{k:'hy2',n:'清潔習慣'},{k:'hy3',n:'洗手規範'},{k:'hy4',n:'溫度紀錄'},{k:'hy5',n:'安全意識'}]},
-  {key:'teamwork',label:'團隊合作',weight:20,subs:[{k:'tw1',n:'溝通表達'},{k:'tw2',n:'互助精神'},{k:'tw3',n:'人際關係'},{k:'tw4',n:'接受指導'},{k:'tw5',n:'情緒管理'}]}
-];
+  {key:'teamwork',label:'團隊合作',weight:20,subs:[{k:'tw1',n:'溝通表達'},{k:'tw2',n:'互助精神'},{k:'tw3',n:'人際關係'},{k:'tw4',n:'帶領新人'},{k:'tw5',n:'情緒管理'}]}
+],
+'儲備幹部/店長':[
+  {key:'leader',label:'領導管理',weight:25,subs:[{k:'ld1',n:'決策判斷'},{k:'ld2',n:'危機處理'},{k:'ld3',n:'以身作則'},{k:'ld4',n:'公平公正'},{k:'ld5',n:'執行力'}]},
+  {key:'operation',label:'營運能力',weight:25,subs:[{k:'op1',n:'業績達成'},{k:'op2',n:'顧客滿意'},{k:'op3',n:'流程優化'},{k:'op4',n:'品質管控'},{k:'op5',n:'異常處理'}]},
+  {key:'training',label:'人員培訓',weight:20,subs:[{k:'tr1',n:'教學能力'},{k:'tr2',n:'新人帶訓'},{k:'tr3',n:'團隊士氣'},{k:'tr4',n:'人員調度'},{k:'tr5',n:'績效輔導'}]},
+  {key:'cost',label:'成本控管',weight:15,subs:[{k:'co1',n:'食材損耗'},{k:'co2',n:'人力調配'},{k:'co3',n:'水電管控'},{k:'co4',n:'庫存管理'},{k:'co5',n:'預算執行'}]},
+  {key:'team',label:'團隊建設',weight:15,subs:[{k:'tb1',n:'溝通協調'},{k:'tb2',n:'衝突處理'},{k:'tb3',n:'向心力'},{k:'tb4',n:'跨店支援'},{k:'tb5',n:'制度落實'}]}
+]
+};
+var PERF_ITEMS=PERF_TEMPLATES['正職人員'];
+function getPerfTemplate(role){if(!role)return'正職人員';if(role==='店長'||role==='副店長'||role==='組長')return'儲備幹部/店長';var emp=staff.find(function(e){return e.role===role});if(emp&&emp.hire_date){var months=Math.floor((new Date()-new Date(emp.hire_date))/(30.44*24*60*60*1000));if(months<3)return'新進員工'}return'正職人員'}
+function setPerfTemplate(type){PERF_ITEMS=PERF_TEMPLATES[type]||PERF_TEMPLATES['正職人員'];return PERF_ITEMS}
+
 var perfReviews=[];
 try{perfReviews=JSON.parse(localStorage.getItem('hm_perf')||'[]')}catch(e){perfReviews=[]}
 var editPerfId=null;
@@ -1381,7 +1401,7 @@ PERF_ITEMS.forEach(function(it){h+='<div style="padding:10px 0;border-bottom:1px
 h+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">';it.subs.forEach(function(sub){var v=(scores&&scores[sub.k])||0;h+='<div style="text-align:center"><div style="font-size:10px;color:var(--gray5);margin-bottom:3px;line-height:1.2">'+sub.n+'</div><div style="display:flex;gap:2px;justify-content:center">';for(var s=1;s<=5;s++){var active=s<=v;h+='<button type="button" style="width:26px;height:26px;border-radius:6px;border:2px solid '+(active?'var(--gold)':'var(--gray3)')+';background:'+(active?'var(--gold4)':'var(--white)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:JetBrains Mono,monospace;color:'+(active?'var(--gold)':'var(--gray4)')+'" onclick="setPerfSubScore(\''+it.key+'\',\''+sub.k+'\','+s+')">'+s+'</button>'}h+='</div></div>'});h+='</div></div>'});document.getElementById('perf-items').innerHTML=h}
 function calcPerfTotal(){var total=0;PERF_ITEMS.forEach(function(it){var catSum=0,catCount=0;it.subs.forEach(function(sub){var v=_perfScores[sub.k]||0;catSum+=v;catCount++});var catAvg=catCount>0?catSum/catCount:0;total+=catAvg*it.weight/5});total=Math.round(total*10)/10;document.getElementById('perf-total-score').textContent=total;var g=perfGrade(total);document.getElementById('perf-grade-badge').textContent=g.g;document.getElementById('perf-grade-badge').style.background=g.bg;document.getElementById('perf-grade-badge').style.color=g.c;return total}
 function setPerfSubScore(catKey,subKey,val){_perfScores[subKey]=val;calcPerfTotal();var empId=document.getElementById('perf-emp').value;var term=document.getElementById('perf-term').value;buildPerfItemsUI(_perfScores,empId,term)}
-function savePerfReview(){var empId=document.getElementById('perf-emp').value;if(!empId){alert('請選擇員工');return}var hasScore=false;PERF_ITEMS.forEach(function(it){it.subs.forEach(function(sub){if(_perfScores[sub.k])hasScore=true})});if(!hasScore){alert('請至少為一個項目評分');return}var total=calcPerfTotal();var e=staff.find(function(x){return x.id===empId});var r={id:editPerfId||('p'+Date.now()),empId:empId,empName:e?e.name:'',term:document.getElementById('perf-term').value,reviewer:document.getElementById('perf-reviewer').value,date:document.getElementById('perf-date').value,scores:Object.assign({},_perfScores),totalScore:total,grade:perfGrade(total).g,comment:document.getElementById('perf-comment').value,goal:document.getElementById('perf-goal').value};if(editPerfId){var idx=perfReviews.findIndex(function(x){return x.id===editPerfId});if(idx>=0)perfReviews[idx]=r;else perfReviews.push(r)}else{perfReviews.push(r)}savePerfData();closePerfAdd();renderPerf();alert('✓ 考核已儲存')}
+function savePerfReview(){var empId=document.getElementById('perf-emp').value;if(!empId){alert('請選擇員工');return}var hasScore=false;PERF_ITEMS.forEach(function(it){it.subs.forEach(function(sub){if(_perfScores[sub.k])hasScore=true})});if(!hasScore){alert('請至少為一個項目評分');return}var total=calcPerfTotal();var e=staff.find(function(x){return x.id===empId});var _tplEl2=document.getElementById('perf-tpl-select');var _tplType2=_tplEl2?_tplEl2.value:'正職人員';var r={id:editPerfId||('p'+Date.now()),empId:empId,template:_tplType2,empName:e?e.name:'',term:document.getElementById('perf-term').value,reviewer:document.getElementById('perf-reviewer').value,date:document.getElementById('perf-date').value,scores:Object.assign({},_perfScores),totalScore:total,grade:perfGrade(total).g,comment:document.getElementById('perf-comment').value,goal:document.getElementById('perf-goal').value};if(editPerfId){var idx=perfReviews.findIndex(function(x){return x.id===editPerfId});if(idx>=0)perfReviews[idx]=r;else perfReviews.push(r)}else{perfReviews.push(r)}savePerfData();closePerfAdd();renderPerf();alert('✓ 考核已儲存')}
 
 function editPerfReview(id){var r=perfReviews.find(function(x){return x.id===id});if(!r)return;editPerfId=id;document.getElementById('perf-modal-title').textContent='📊 編輯考核';var sel=document.getElementById('perf-emp');sel.innerHTML='';staff.forEach(function(e){var o=document.createElement('option');o.value=e.id;o.textContent=e.name+' ('+e.role+')';if(e.id===r.empId)o.selected=true;sel.appendChild(o)});document.getElementById('perf-term').value=r.term;document.getElementById('perf-reviewer').value=r.reviewer||'';document.getElementById('perf-date').value=r.date||'';document.getElementById('perf-comment').value=r.comment||'';document.getElementById('perf-goal').value=r.goal||'';_perfScores=Object.assign({},r.scores);buildPerfItemsUI(_perfScores);calcPerfTotal();document.getElementById('ov-perf').classList.add('show')}
 
@@ -1922,7 +1942,7 @@ function calcPerfLeaveData(eid,term){var sick=0,personal=0;var termMonths=parseP
 function parsePerfTerm(term){var months=[];var m=term.match(/(\d+)年.*Q(\d)/);if(m){var rocY=+m[1];var q=+m[2];var adY=rocY+1911;var startM=(q-1)*3+1;for(var i=0;i<3;i++){months.push(adY+'-'+String(startM+i).padStart(2,'0'))}}else{var m2=term.match(/(\d+)年度/);if(m2){var adY2=+m2[1]+1911;for(var i2=1;i2<=12;i2++){months.push(adY2+'-'+String(i2).padStart(2,'0'))}}}return months}
 
 
-function openPerfAdd(editId){editPerfId=editId||null;var scores=null;if(editId){var r=perfReviews.find(function(x){return x.id===editId});if(r){scores=r.scores;document.getElementById('perf-emp').value=r.empId;document.getElementById('perf-term').value=r.term;document.getElementById('perf-reviewer').value=r.reviewer||'';document.getElementById('perf-date').value=r.date||'';document.getElementById('perf-comment').value=r.comment||'';document.getElementById('perf-goal').value=r.goal||'';document.getElementById('perf-eval-type').value=r.evalType||'主管評核';document.getElementById('perf-raise').value=r.raise||0;document.getElementById('perf-modal-title').textContent='📊 編輯考核'}}_perfScores=scores||{};buildPerfItemsUI(_perfScores,document.getElementById('perf-emp').value,document.getElementById('perf-term').value);calcPerfTotal();document.getElementById('ov-perf').classList.add('show')}
+function openPerfAdd(editId){editPerfId=editId||null;var scores=null;if(editId){var r=perfReviews.find(function(x){return x.id===editId});if(r){if(r.template)setPerfTemplate(r.template);scores=r.scores;document.getElementById('perf-emp').value=r.empId;document.getElementById('perf-term').value=r.term;document.getElementById('perf-reviewer').value=r.reviewer||'';document.getElementById('perf-date').value=r.date||'';document.getElementById('perf-comment').value=r.comment||'';document.getElementById('perf-goal').value=r.goal||'';document.getElementById('perf-eval-type').value=r.evalType||'主管評核';document.getElementById('perf-raise').value=r.raise||0;document.getElementById('perf-modal-title').textContent='📊 編輯考核'}}_perfScores=scores||{};buildPerfItemsUI(_perfScores,document.getElementById('perf-emp').value,document.getElementById('perf-term').value);calcPerfTotal();document.getElementById('ov-perf').classList.add('show')}
 function closePerfAdd(){document.getElementById('ov-perf').classList.remove('show');editPerfId=null}
 
 
@@ -2144,6 +2164,111 @@ function editPunch(punchId){
 
 // ===== DEVICE UNBIND =====
 function unbindDevice(empId){var e=staff.find(function(x){return x.id===empId});if(!e){alert('找不到員工');return}if(!e.boundDevice){alert(e.name+' 尚未綁定裝置');return}if(!confirm('確定解除 '+e.name+' 的裝置綁定？\n\n解除後員工需用新手機重新登入APP，系統會自動綁定新裝置。'))return;e.boundDevice='';save();logAudit('裝置','解除 '+e.name+' 裝置綁定');alert('✅ 已解除 '+e.name+' 的裝置綁定')}
+
+
+
+// ===== PERF TEMPLATE SELECTOR =====
+function addPerfTplSelector(){
+  var area=document.getElementById('perf-add-area');
+  if(!area||document.getElementById('perf-tpl-select'))return;
+  var empId=document.getElementById('perf-emp')?document.getElementById('perf-emp').value:'';
+  var emp=staff.find(function(x){return x.id===empId});
+  var defaultTpl='正職人員';
+  if(emp){
+    if(emp.role==='店長'||emp.role==='副店長'||emp.role==='組長')defaultTpl='儲備幹部/店長';
+    else if(emp.hire_date){
+      var months=Math.floor((new Date()-new Date(emp.hire_date))/(30.44*24*60*60*1000));
+      if(months<3)defaultTpl='新進員工';
+    }
+  }
+  setPerfTemplate(defaultTpl);
+  var sel=document.createElement('div');
+  sel.style.cssText='margin-bottom:12px';
+  sel.innerHTML='<span style="font-size:11px;font-weight:700;color:var(--gray5)">考核類型</span><select id="perf-tpl-select" onchange="onPerfTplChange()" class="fi" style="font-size:13px;padding:8px"><option value="新進員工"'+(defaultTpl==='新進員工'?' selected':'')+'>新進員工（學習30%/技能25%/出勤25%/衛生10%/適應10%）</option><option value="正職人員"'+(defaultTpl==='正職人員'?' selected':'')+'>正職人員（態度20%/技能20%/出勤20%/衛生20%/團隊20%）</option><option value="儲備幹部/店長"'+(defaultTpl==='儲備幹部/店長'?' selected':'')+'>儲備幹部/店長（領導25%/營運25%/培訓20%/成本15%/團隊15%）</option></select>';
+  area.insertBefore(sel,area.firstChild);
+}
+function onPerfTplChange(){
+  var sel=document.getElementById('perf-tpl-select');
+  if(!sel)return;
+  setPerfTemplate(sel.value);
+  _perfScores={};
+  buildPerfItemsUI(_perfScores);
+  calcPerfTotal();
+}
+
+
+// ===== PERF TEMPLATE EDITOR =====
+function openPerfTemplateEditor(){
+  var h='<div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px">⚙ 考核權重設定</div>';
+  var tpls=['新進員工','正職人員','儲備幹部/店長'];
+  tpls.forEach(function(tpl,ti){
+    var items=PERF_TEMPLATES[tpl];
+    var totalW=0;
+    items.forEach(function(it){totalW+=it.weight});
+    h+='<div style="margin-bottom:16px;padding:12px;background:var(--gray1);border-radius:10px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">'+tpl+' <span id="tpl-total-'+ti+'" style="font-size:11px;color:'+(totalW===100?'#166534':'#dc2626')+'">合計 '+totalW+'%</span></div>';
+    items.forEach(function(it,ii){
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+      h+='<span style="min-width:80px;font-size:12px;font-weight:700">'+it.label+'</span>';
+      h+='<input type="number" min="0" max="100" value="'+it.weight+'" id="pw-'+ti+'-'+ii+'" onchange="updateTplTotal('+ti+')" style="width:60px;padding:4px 8px;border:2px solid var(--gray2);border-radius:6px;font-size:13px;text-align:center;font-weight:700">';
+      h+='<span style="font-size:11px;color:var(--gray5)">%</span>';
+      h+='<span style="flex:1;font-size:10px;color:var(--gray5)">'+it.subs.map(function(s){return s.n}).join('/')+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  h+='<div style="font-size:11px;color:var(--gray5);margin-bottom:10px">每個類型的權重合計必須 = 100%</div>';
+  h+='<button onclick="savePerfTemplates()" style="width:100%;padding:12px;background:var(--navy);color:var(--gold2);border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">💾 儲存權重設定</button>';
+  showHistoryModal('⚙ 考核權重設定',h,false);
+}
+
+function updateTplTotal(ti){
+  var items=PERF_TEMPLATES[['新進員工','正職人員','儲備幹部/店長'][ti]];
+  var total=0;
+  items.forEach(function(it,ii){
+    var el=document.getElementById('pw-'+ti+'-'+ii);
+    if(el)total+=+(el.value)||0;
+  });
+  var span=document.getElementById('tpl-total-'+ti);
+  if(span){span.textContent='合計 '+total+'%';span.style.color=total===100?'#166534':'#dc2626'}
+}
+
+function savePerfTemplates(){
+  var tpls=['新進員工','正職人員','儲備幹部/店長'];
+  var allOk=true;
+  tpls.forEach(function(tpl,ti){
+    var items=PERF_TEMPLATES[tpl];
+    var total=0;
+    items.forEach(function(it,ii){
+      var el=document.getElementById('pw-'+ti+'-'+ii);
+      if(el){it.weight=+(el.value)||0;total+=it.weight}
+    });
+    if(total!==100){allOk=false;alert(tpl+' 權重合計 '+total+'%，必須等於 100%')}
+  });
+  if(!allOk)return;
+  PERF_ITEMS=PERF_TEMPLATES['正職人員'];
+  if(db){
+    db.collection(fbCol('hrdata')).doc('perfTemplates').set({data:PERF_TEMPLATES}).then(function(){
+      alert('✅ 考核權重已儲存');
+      logAudit('考核','修改考核權重設定');
+    }).catch(function(e){alert('儲存失敗：'+e.message)});
+  }
+  localStorage.setItem('hm_perfTpl',JSON.stringify(PERF_TEMPLATES));
+}
+
+function loadPerfTemplates(){
+  if(db){
+    db.collection(fbCol('hrdata')).doc('perfTemplates').get().then(function(doc){
+      if(doc.exists&&doc.data().data){
+        var saved=doc.data().data;
+        for(var k in saved){if(PERF_TEMPLATES[k])PERF_TEMPLATES[k]=saved[k]}
+        PERF_ITEMS=PERF_TEMPLATES['正職人員'];
+      }
+    }).catch(function(){});
+  }else{
+    try{var s=JSON.parse(localStorage.getItem('hm_perfTpl'));if(s){for(var k in s){if(PERF_TEMPLATES[k])PERF_TEMPLATES[k]=s[k]}PERF_ITEMS=PERF_TEMPLATES['正職人員']}}catch(e){}
+  }
+}
 
 </script>
 </body>
