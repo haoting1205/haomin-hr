@@ -25,6 +25,14 @@
   --tab-h:48px;--bar-h:54px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* Scrollbar styling */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#f0f0f0}
+::-webkit-scrollbar-thumb{background:#aab;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#889}
+::-webkit-scrollbar-corner{background:#f0f0f0}
+*{scrollbar-width:thin;scrollbar-color:#aab #f0f0f0}
+
 body{font-family:Noto Sans TC,sans-serif;background:#eef2f7;color:var(--gray6);font-size:14px;overflow-x:hidden}
 .topbar{background:var(--navy4);border-bottom:2px solid var(--gold3);padding:0 16px;display:flex;align-items:center;gap:0;height:var(--bar-h);position:sticky;top:0;z-index:200}
 .brand{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--gold2);letter-spacing:.8px;padding-right:16px;border-right:1px solid var(--navy3);white-space:nowrap}
@@ -629,7 +637,7 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 <!-- salary settings moved inline to sched-bar -->
 
-<div class="ov" id="ov-emp-detail" onclick="if(event.target===this)closeEmpDetail()"><div class="modal modal-lg"><div class="mh"><span class="mt" id="emp-detail-title">員工資料</span><button class="mc" onclick="closeEmpDetail()">✕</button></div><div id="emp-detail-form"></div><div class="action-btns"><button class="btn-apply" onclick="saveEmpDetail()">✓ 儲存</button><button class="btn-cancel" onclick="closeEmpDetail()">取消</button></div></div></div>
+<div class="ov" id="ov-emp-detail" onclick="if(event.target===this)closeEmpDetail()"><div class="modal modal-lg"><div class="mh"><span class="mt" id="emp-detail-title">員工資料</span><button class="mc" onclick="closeEmpDetail()">✕</button></div><div id="emp-detail-form"></div><div class="action-btns"><div style="margin-bottom:12px;padding:12px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe"><div style="font-size:12px;font-weight:700;color:#4338ca;margin-bottom:6px">📱 裝置綁定狀態</div><div style="font-size:12px;color:#333" id="ed-device-status">載入中...</div></div><button class="btn-apply" onclick="saveEmpDetail()">✓ 儲存</button><button class="btn-cancel" onclick="closeEmpDetail()">取消</button></div></div></div>
 
 <div class="ov" id="ov-fb-cfg" onclick="if(event.target===this)closeFbConfig()"><div class="modal" style="max-width:520px"><div class="mh"><span class="mt">⚙ Firebase 設定</span><button class="mc" onclick="closeFbConfig()">✕</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"><div class="form-field" style="grid-column:span 2"><span class="fl">API Key *</span><input class="fi" id="fb-apiKey"></div><div class="form-field"><span class="fl">Auth Domain</span><input class="fi" id="fb-authDomain"></div><div class="form-field"><span class="fl">Project ID *</span><input class="fi" id="fb-projectId"></div><div class="form-field"><span class="fl">Storage Bucket</span><input class="fi" id="fb-storageBucket"></div><div class="form-field"><span class="fl">App ID</span><input class="fi" id="fb-appId"></div><div class="form-field" style="display:none"><input class="fi" id="fb-databaseURL"></div></div><div style="margin-bottom:14px"><div class="fl" style="margin-bottom:6px">環境</div><select class="fi" id="fb-env" style="width:100%"><option value="prod">prod</option><option value="dev">dev</option><option value="demo">demo</option></select></div><div id="fb-conn-status" style="min-height:36px;padding:8px 12px;border-radius:6px;background:#f5f6fa;font-size:12px;color:#4b5680;margin-bottom:14px">尚未連線</div><div style="display:flex;gap:8px"><button class="btn-apply" style="flex:1" onclick="saveFbConfig()">✓ 儲存並連線</button><button class="btn-cancel" onclick="closeFbConfig()">取消</button><button class="btn-cancel" style="color:#dc2626;border-color:#dc2626" onclick="clearFbConfig()">清除</button><button class="btn-cancel" style="color:#0369a1;border-color:#0369a1" onclick="fbFullRestore()">☁ 雲端還原</button></div></div></div>
 
@@ -645,7 +653,7 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 <div class="ov" id="ov-perf" onclick="if(event.target===this)closePerfAdd()"><div class="modal modal-lg" style="max-width:560px">
 <div class="mh"><span class="mt" id="perf-modal-title">📊 新增考核</span><button class="mc" onclick="closePerfAdd()">✕</button></div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-  <div class="form-field"><span class="fl">員工 *</span><select class="fi" id="perf-emp"></select></div>
+  <div class="form-field"><span class="fl">員工 *</span><select class="fi" id="perf-emp" onchange="onPerfEmpChange()"></select></div>
   <div class="form-field"><span class="fl">考核期間 *</span><select class="fi" id="perf-term"><option>114年Q1(1-3月)</option><option>114年Q2(4-6月)</option><option>114年Q3(7-9月)</option><option>114年Q4(10-12月)</option><option>114年度</option><option>115年Q1(1-3月)</option><option selected>115年Q2(4-6月)</option><option>115年Q3(7-9月)</option><option>115年Q4(10-12月)</option><option>115年度</option><option>116年Q1(1-3月)</option><option>116年Q2(4-6月)</option><option>116年Q3(7-9月)</option><option>116年Q4(10-12月)</option><option>116年度</option></select></div>
   <div class="form-field"><span class="fl">評核人</span><input class="fi" id="perf-reviewer" placeholder="主管姓名"></div>
   <div class="form-field"><span class="fl">評核日期</span><input class="fi" type="date" id="perf-date"></div>
@@ -1403,7 +1411,7 @@ function calcPerfTotal(){var total=0;PERF_ITEMS.forEach(function(it){var catSum=
 function setPerfSubScore(catKey,subKey,val){_perfScores[subKey]=val;calcPerfTotal();var empId=document.getElementById('perf-emp').value;var term=document.getElementById('perf-term').value;buildPerfItemsUI(_perfScores,empId,term)}
 function savePerfReview(){var empId=document.getElementById('perf-emp').value;if(!empId){alert('請選擇員工');return}var hasScore=false;PERF_ITEMS.forEach(function(it){it.subs.forEach(function(sub){if(_perfScores[sub.k])hasScore=true})});if(!hasScore){alert('請至少為一個項目評分');return}var total=calcPerfTotal();var e=staff.find(function(x){return x.id===empId});var _tplEl2=document.getElementById('perf-tpl-select');var _tplType2=_tplEl2?_tplEl2.value:'正職人員';var r={id:editPerfId||('p'+Date.now()),empId:empId,template:_tplType2,empName:e?e.name:'',term:document.getElementById('perf-term').value,reviewer:document.getElementById('perf-reviewer').value,date:document.getElementById('perf-date').value,scores:Object.assign({},_perfScores),totalScore:total,grade:perfGrade(total).g,comment:document.getElementById('perf-comment').value,goal:document.getElementById('perf-goal').value};if(editPerfId){var idx=perfReviews.findIndex(function(x){return x.id===editPerfId});if(idx>=0)perfReviews[idx]=r;else perfReviews.push(r)}else{perfReviews.push(r)}savePerfData();closePerfAdd();renderPerf();alert('✓ 考核已儲存')}
 
-function editPerfReview(id){var r=perfReviews.find(function(x){return x.id===id});if(!r)return;editPerfId=id;document.getElementById('perf-modal-title').textContent='📊 編輯考核';var sel=document.getElementById('perf-emp');sel.innerHTML='';staff.forEach(function(e){var o=document.createElement('option');o.value=e.id;o.textContent=e.name+' ('+e.role+')';if(e.id===r.empId)o.selected=true;sel.appendChild(o)});document.getElementById('perf-term').value=r.term;document.getElementById('perf-reviewer').value=r.reviewer||'';document.getElementById('perf-date').value=r.date||'';document.getElementById('perf-comment').value=r.comment||'';document.getElementById('perf-goal').value=r.goal||'';_perfScores=Object.assign({},r.scores);buildPerfItemsUI(_perfScores);calcPerfTotal();document.getElementById('ov-perf').classList.add('show')}
+function editPerfReview(id){var r=perfReviews.find(function(x){return x.id===id});if(!r)return;editPerfId=id;document.getElementById('perf-modal-title').textContent='📊 編輯考核';var sel=document.getElementById('perf-emp');sel.innerHTML='';staff.forEach(function(e){if(!e.leave_date){var o=document.createElement('option');o.value=e.id;o.textContent=e.name+' ('+e.role+')';sel.appendChild(o)}});if(r.empId)sel.value=r.empId;if(r.template)setPerfTemplate(r.template);document.getElementById('perf-term').value=r.term;document.getElementById('perf-reviewer').value=r.reviewer||'';document.getElementById('perf-date').value=r.date||'';document.getElementById('perf-comment').value=r.comment||'';document.getElementById('perf-goal').value=r.goal||'';_perfScores=Object.assign({},r.scores);buildPerfItemsUI(_perfScores);calcPerfTotal();document.getElementById('ov-perf').classList.add('show')}
 
 function delPerfReview(id){if(!confirm('確定刪除此筆考核？'))return;perfReviews=perfReviews.filter(function(x){return x.id!==id});savePerfData();renderPerf()}
 
@@ -1942,7 +1950,11 @@ function calcPerfLeaveData(eid,term){var sick=0,personal=0;var termMonths=parseP
 function parsePerfTerm(term){var months=[];var m=term.match(/(\d+)年.*Q(\d)/);if(m){var rocY=+m[1];var q=+m[2];var adY=rocY+1911;var startM=(q-1)*3+1;for(var i=0;i<3;i++){months.push(adY+'-'+String(startM+i).padStart(2,'0'))}}else{var m2=term.match(/(\d+)年度/);if(m2){var adY2=+m2[1]+1911;for(var i2=1;i2<=12;i2++){months.push(adY2+'-'+String(i2).padStart(2,'0'))}}}return months}
 
 
-function openPerfAdd(editId){editPerfId=editId||null;var scores=null;if(editId){var r=perfReviews.find(function(x){return x.id===editId});if(r){if(r.template)setPerfTemplate(r.template);scores=r.scores;document.getElementById('perf-emp').value=r.empId;document.getElementById('perf-term').value=r.term;document.getElementById('perf-reviewer').value=r.reviewer||'';document.getElementById('perf-date').value=r.date||'';document.getElementById('perf-comment').value=r.comment||'';document.getElementById('perf-goal').value=r.goal||'';document.getElementById('perf-eval-type').value=r.evalType||'主管評核';document.getElementById('perf-raise').value=r.raise||0;document.getElementById('perf-modal-title').textContent='📊 編輯考核'}}_perfScores=scores||{};buildPerfItemsUI(_perfScores,document.getElementById('perf-emp').value,document.getElementById('perf-term').value);calcPerfTotal();document.getElementById('ov-perf').classList.add('show')}
+function openPerfAdd(editId){editPerfId=editId||null;var scores=null;
+var sel=document.getElementById('perf-emp');
+sel.innerHTML='<option value="">請選擇員工</option>';
+staff.forEach(function(e){if(!e.leave_date){var o=document.createElement('option');o.value=e.id;o.textContent=e.name+' ('+e.role+')';sel.appendChild(o)}});
+if(editId){var r=perfReviews.find(function(x){return x.id===editId});if(r){if(r.template)setPerfTemplate(r.template);scores=r.scores;document.getElementById('perf-emp').value=r.empId;document.getElementById('perf-term').value=r.term;document.getElementById('perf-reviewer').value=r.reviewer||'';document.getElementById('perf-date').value=r.date||'';document.getElementById('perf-comment').value=r.comment||'';document.getElementById('perf-goal').value=r.goal||'';document.getElementById('perf-eval-type').value=r.evalType||'主管評核';document.getElementById('perf-raise').value=r.raise||0;document.getElementById('perf-modal-title').textContent='📊 編輯考核'}}_perfScores=scores||{};buildPerfItemsUI(_perfScores,document.getElementById('perf-emp').value,document.getElementById('perf-term').value);calcPerfTotal();document.getElementById('ov-perf').classList.add('show')}
 function closePerfAdd(){document.getElementById('ov-perf').classList.remove('show');editPerfId=null}
 
 
@@ -2163,7 +2175,7 @@ function editPunch(punchId){
 
 
 // ===== DEVICE UNBIND =====
-function unbindDevice(empId){var e=staff.find(function(x){return x.id===empId});if(!e){alert('找不到員工');return}if(!e.boundDevice){alert(e.name+' 尚未綁定裝置');return}if(!confirm('確定解除 '+e.name+' 的裝置綁定？\n\n解除後員工需用新手機重新登入APP，系統會自動綁定新裝置。'))return;e.boundDevice='';save();logAudit('裝置','解除 '+e.name+' 裝置綁定');alert('✅ 已解除 '+e.name+' 的裝置綁定')}
+function unbindDevice(empId){var e=staff.find(function(x){return x.id===empId});if(!e){alert('找不到員工');return}if(!e.boundDevice){alert(e.name+' 尚未綁定裝置');return}if(!confirm('確定解除 '+e.name+' 的裝置綁定？\n\n解除後員工需用新手機重新登入APP，系統會自動綁定新裝置。'))return;e.boundDevice='';save();logAudit('裝置','解除 '+e.name+' 裝置綁定');alert('✅ 已解除 '+e.name+' 的裝置綁定');renderDeviceStatus(empId)}
 
 
 
@@ -2267,6 +2279,42 @@ function loadPerfTemplates(){
     }).catch(function(){});
   }else{
     try{var s=JSON.parse(localStorage.getItem('hm_perfTpl'));if(s){for(var k in s){if(PERF_TEMPLATES[k])PERF_TEMPLATES[k]=s[k]}PERF_ITEMS=PERF_TEMPLATES['正職人員']}}catch(e){}
+  }
+}
+
+
+
+function onPerfEmpChange(){
+  var empId=document.getElementById('perf-emp').value;
+  if(!empId)return;
+  var emp=staff.find(function(x){return x.id===empId});
+  if(!emp)return;
+  var tpl='正職人員';
+  if(emp.role==='店長'||emp.role==='副店長'||emp.role==='組長')tpl='儲備幹部/店長';
+  else if(emp.hire_date){
+    var months=Math.floor((new Date()-new Date(emp.hire_date))/(30.44*24*60*60*1000));
+    if(months<3)tpl='新進員工';
+  }
+  setPerfTemplate(tpl);
+  var tplSel=document.getElementById('perf-tpl-select');
+  if(tplSel)tplSel.value=tpl;
+  _perfScores={};
+  buildPerfItemsUI(_perfScores);
+  calcPerfTotal();
+}
+
+
+
+// ===== DEVICE BINDING UI =====
+function renderDeviceStatus(empId){
+  var el=document.getElementById('ed-device-status');
+  if(!el)return;
+  var emp=staff.find(function(x){return x.id===empId});
+  if(!emp){el.innerHTML='找不到員工';return}
+  if(emp.boundDevice){
+    el.innerHTML='<span style="color:#166534;font-weight:700">✅ 已綁定</span><br><span style="font-size:10px;color:#666;font-family:monospace">裝置ID: '+emp.boundDevice.substring(0,20)+'...</span><br><button onclick="unbindDevice(\''+empId+'\')" style="margin-top:6px;padding:6px 14px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🔓 解除綁定</button>';
+  }else{
+    el.innerHTML='<span style="color:#92400e;font-weight:700">⚠ 尚未綁定</span><br><span style="font-size:10px;color:#666">員工首次用APP登入打卡時會自動綁定</span>';
   }
 }
 
