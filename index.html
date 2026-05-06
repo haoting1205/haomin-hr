@@ -1502,7 +1502,19 @@ if(!/^[a-zA-Z0-9]+$/.test(u)){alert('帳號只能使用英文和數字');return}
 if(p.length<8||p.length>16){alert('密碼長度需8~16字元');return}
 if(!/[a-zA-Z]/.test(p)||!/[0-9]/.test(p)){alert('密碼需同時包含英文和數字');return}if(userAccounts.find(function(a){return a.user.toLowerCase()===u.toLowerCase()})){alert('帳號已存在');return}userAccounts.push({user:u,pass:p,role:r,empId:e});save();logAudit('新增','新增帳號 '+u+' ('+r+')');openAccountMgr();alert('帳號 '+u+' 已新增')}
 function delAcct(i){if(!confirm('刪除帳號 '+userAccounts[i].user+'？'))return;logAudit('刪除','刪除帳號 '+userAccounts[i].user);userAccounts.splice(i,1);save();openAccountMgr()}
-function resetAcctPass(i){var np=prompt('輸入新密碼（8~16字元，英文+數字）：');if(!np)return;if(np.length<8||np.length>16){alert('密碼長度需8~16字元');return}if(!/[a-zA-Z]/.test(np)||!/[0-9]/.test(np)){alert('密碼需同時包含英文和數字');return}userAccounts[i].pass=hashPass(np);save();logAudit('修改','重設 '+userAccounts[i].user+' 密碼');alert('密碼已更新')}
+function resetAcctPass(i){
+  var acct=userAccounts[i];if(!acct)return;
+  var emp=acct.empId?staff.find(function(e){return e.id===acct.empId}):null;
+  var defaultPw=acct.user+'aa';
+  var choice=confirm('重設「'+acct.user+'」'+(emp?' ('+emp.name+')':'')+'的密碼\n\n按「確定」→ 重設為預設密碼：'+defaultPw+'\n按「取消」→ 自訂密碼');
+  var np;
+  if(choice){np=defaultPw}
+  else{np=prompt('輸入新密碼（8~16字元，英文+數字）：');if(!np)return;if(np.length<8||np.length>16){alert('密碼長度需8~16字元');return}if(!/[a-zA-Z]/.test(np)||!/[0-9]/.test(np)){alert('密碼需同時包含英文和數字');return}}
+  acct.pass=hashPass(np);
+  if(emp&&emp.boundDevice){emp.boundDevice='';if(db)db.collection(fbCol('employees')).doc(emp.id).update({boundDevice:''}).catch(function(){})}
+  save();logAudit('修改','重設 '+acct.user+' 密碼'+(emp?' + 清除裝置綁定':''));
+  alert('✅ 密碼已重設\n\n帳號：'+acct.user+'\n新密碼：'+np+(emp&&emp.boundDevice?'\n裝置綁定：已清除':'')+'\n\n請通知員工登入後修改密碼')
+}
 
 // ===== AUTO BACKUP =====
 function autoBackup(){var data=localStorage.getItem('hrData')||'{}';var blob=new Blob([data],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');var now=new Date();a.href=url;a.download='hr-backup-'+now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate())+pad(now.getHours())+pad(now.getMinutes())+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);localStorage.setItem('hm_last_backup',new Date().toLocaleString('zh-TW'));logAudit('備份','下載資料備份');alert('備份已下載')}
