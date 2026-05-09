@@ -2742,17 +2742,17 @@ function loadProdSchedule(){
 
 
 function clearSchedCell(){
-  if(!eEmp||!eDate){alert('請先選擇排班格');return}
-  if(sched[eEmp]&&sched[eEmp][dk(eDate)]){
-    pushUndo('清除排班');
-    delete sched[eEmp][dk(eDate)];
-    save();
-    closeEdit();
-    renderSched();
+  try{
+    if(!eEmp||!eDate){alert('請先選擇排班格');return}
+    if(!sched[eEmp])sched[eEmp]={};
+    var key=dk(eDate);
+    if(sched[eEmp][key]){
+      pushUndo('清除排班');
+      delete sched[eEmp][key];
+    }
+    save();closeEdit();renderSched();
     if(document.getElementById('panel-pay').classList.contains('active'))renderPay();
-  }else{
-    closeEdit();
-  }
+  }catch(e){alert('清除失敗：'+e.message)}
 }
 </script>
 </body>
