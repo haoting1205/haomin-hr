@@ -630,7 +630,7 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 <div class="action-btns"><button class="btn-apply" onclick="saveHistory()">✓ 儲存</button></div>
 </div></div>
 
-<div class="ov" id="ov-edit" onclick="if(event.target===this)closeEdit()"><div class="modal"><div class="mh"><span class="mt" id="et">編輯班次</span><button class="mc" onclick="closeEdit()">✕</button></div><div class="type-btns"><button class="tb" id="t-空白" onclick="eType='空白';applyE()" style="background:#f0f0f0;color:#999;border:2px dashed #ccc">✕ 空白</button><button class="tb" id="t-上班" onclick="setT('上班')">上班</button><button class="tb" id="t-例假" onclick="setT('例假')">例假</button><button class="tb" id="t-休假" onclick="setT('休假')">休假</button><button class="tb" id="t-國定假日" onclick="setT('國定假日')">國定假日</button><button class="tb" id="t-特休" onclick="setT('特休')">特休</button><button class="tb" id="t-補休" onclick="setT('補休')">補休</button><button class="tb" id="t-事假" onclick="setT('事假')">事假</button><button class="tb" id="t-病假" onclick="setT('病假')">病假</button></div><div id="edit-time"><div class="time-row"><div><div class="tl">上班</div><input class="ti" type="time" id="es" value="09:00" oninput="calcE()"></div><div><div class="tl">下班</div><input class="ti" type="time" id="ee" value="17:00" oninput="calcE()"></div></div><div class="calc-strip"><div class="calc-item"><div class="calc-lbl">工時</div><div class="calc-val" id="ceff" style="color:var(--cyan)">─</div></div><div class="calc-item"><div class="calc-lbl">正常</div><div class="calc-val" id="creg">─</div></div><div class="calc-item"><div class="calc-lbl">加班</div><div class="calc-val" id="cot" style="color:var(--orange)">─</div></div></div><div style="font-size:10px;color:var(--gray4);margin-bottom:10px" id="otNote"></div></div><div class="action-btns"><button class="btn-apply" onclick="applyE()">✓ 套用</button><button class="btn-cancel" onclick="closeEdit()">取消</button></div></div></div>
+<div class="ov" id="ov-edit" onclick="if(event.target===this)closeEdit()"><div class="modal"><div class="mh"><span class="mt" id="et">編輯班次</span><button class="mc" onclick="closeEdit()">✕</button></div><div class="type-btns"><button class="tb" id="t-上班" onclick="setT('上班')">上班</button><button class="tb" id="t-例假" onclick="setT('例假')">例假</button><button class="tb" id="t-休假" onclick="setT('休假')">休假</button><button class="tb" id="t-國定假日" onclick="setT('國定假日')">國定假日</button><button class="tb" id="t-特休" onclick="setT('特休')">特休</button><button class="tb" id="t-補休" onclick="setT('補休')">補休</button><button class="tb" id="t-事假" onclick="setT('事假')">事假</button><button class="tb" id="t-病假" onclick="setT('病假')">病假</button></div><div id="edit-time"><div class="time-row"><div><div class="tl">上班</div><input class="ti" type="time" id="es" value="09:00" oninput="calcE()"></div><div><div class="tl">下班</div><input class="ti" type="time" id="ee" value="17:00" oninput="calcE()"></div></div><div class="calc-strip"><div class="calc-item"><div class="calc-lbl">工時</div><div class="calc-val" id="ceff" style="color:var(--cyan)">─</div></div><div class="calc-item"><div class="calc-lbl">正常</div><div class="calc-val" id="creg">─</div></div><div class="calc-item"><div class="calc-lbl">加班</div><div class="calc-val" id="cot" style="color:var(--orange)">─</div></div></div><div style="font-size:10px;color:var(--gray4);margin-bottom:10px" id="otNote"></div></div><div class="action-btns"><button class="btn-apply" onclick="applyE()">✓ 套用</button><button style="background:#f5f5f5;color:#999;border:2px dashed #ccc;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer" onclick="clearSchedCell()">✕ 清除</button><button class="btn-cancel" onclick="closeEdit()">取消</button></div></div></div>
 
 <div class="ov" id="ov-staff" onclick="if(event.target===this)closeStaff()"><div class="modal modal-lg"><div class="mh"><span class="mt">👥 新增/刪除員工 — <span id="staff-store-name"></span></span><button class="mc" onclick="closeStaff()">✕</button></div>
 <div style="background:#f0f6ff;border:1px solid #b5d4f4;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:#0C447C;line-height:1.7">從員工資料中勾選要加入 <b id="staff-store-name2"></b> 排班表的員工。<br>本店員工自動勾選，其他門市員工勾選後視為跨店支援。</div>
@@ -1276,7 +1276,7 @@ function calcInsDisplay(){var lbE=(INS.lb_total||12.5)*(INS.lb_emp_pct||20)/100;
 function openEdit(eid,d){if(!checkSchedLockBeforeEdit())return;eEmp=eid;eDate=d;var e=staff.find(function(x){return x.id===eid});if(!e)return;var dt=new Date(curY+1911,curM-1,d);document.getElementById('et').textContent=e.name+' '+curM+'/'+d+'('+DOW[dt.getDay()]+')';var c=getC(eid,d);if(c&&LEAVE.indexOf(c.type)>=0){eType=c.type}else{eType='上班';var sh=(c&&c.sh!=null)?c.sh:e.sh,sm_=(c&&c.sm!=null)?c.sm:e.sm,eh=(c&&c.eh!=null)?c.eh:e.eh,em=(c&&c.em!=null)?c.em:e.em;document.getElementById('es').value=fT(sh,sm_);document.getElementById('ee').value=fT(eh,em)}updateTUI();calcE();document.getElementById('ov-edit').classList.add('show')}
 function closeEdit(){document.getElementById('ov-edit').classList.remove('show');eEmp=null;eDate=null}
 function setT(t){eType=t;updateTUI();calcE()}
-function updateTUI(){LEAVE.concat(['上班','空白']).forEach(function(t){var b=document.getElementById('t-'+t);if(b)b.className='tb'+(eType===t?' a-'+t:'')});document.getElementById('edit-time').style.display=eType==='上班'?'block':'none';if(eType==='空白')document.getElementById('edit-time').style.display='none'}
+function updateTUI(){LEAVE.concat(['上班']).forEach(function(t){var b=document.getElementById('t-'+t);if(b)b.className='tb'+(eType===t?' a-'+t:'')});document.getElementById('edit-time').style.display=eType==='上班'?'block':'none';if(eType==='空白')document.getElementById('edit-time').style.display='none'}
 function calcE(){if(eType!=='上班')return;var sv=(document.getElementById('es').value||'09:00').split(':').map(Number),ev=(document.getElementById('ee').value||'17:00').split(':').map(Number);var h=hrs(sv[0],sv[1],ev[0],ev[1]);document.getElementById('ceff').textContent=fH(h.e);document.getElementById('creg').textContent=fH(h.r);document.getElementById('cot').textContent=fH(h.ot);document.getElementById('otNote').textContent=h.ot>0?'加班費：前2h×1.33，3h起×1.67':''}
 function applyE(){pushUndo('編輯排班');if(!eEmp||!eDate)return;if(eType==='上班'){var sv=(document.getElementById('es').value||'09:00').split(':').map(Number),ev=(document.getElementById('ee').value||'17:00').split(':').map(Number);if((ev[0]+ev[1]/60)<=(sv[0]+sv[1]/60)){alert('下班須晚於上班');return}if(!sched[eEmp])sched[eEmp]={};sched[eEmp][dk(eDate)]={type:'work',sh:sv[0],sm:sv[1],eh:ev[0],em:ev[1]}}else if(eType==='空白'){if(sched[eEmp])delete sched[eEmp][dk(eDate)]}else{if(!sched[eEmp])sched[eEmp]={};sched[eEmp][dk(eDate)]={type:eType}}save();closeEdit();renderSched();if(document.getElementById('panel-pay').classList.contains('active'))renderPay()}
 
@@ -2740,6 +2740,20 @@ function loadProdSchedule(){
   }).catch(function(){});
 }
 
+
+function clearSchedCell(){
+  if(!eEmp||!eDate){alert('請先選擇排班格');return}
+  if(sched[eEmp]&&sched[eEmp][dk(eDate)]){
+    pushUndo('清除排班');
+    delete sched[eEmp][dk(eDate)];
+    save();
+    closeEdit();
+    renderSched();
+    if(document.getElementById('panel-pay').classList.contains('active'))renderPay();
+  }else{
+    closeEdit();
+  }
+}
 </script>
 </body>
 </html>
