@@ -1316,7 +1316,7 @@ h+='</div><button style="margin-top:6px;padding:6px 14px;background:#0e7490;colo
 h+=s('📋 文件','#5C2D91');h+='<div class="edf"><span class="edl">體檢</span><select class="edi" id="ed-dh">'+selOpts(docs,e.doc_health)+'</select></div>';h+='<div class="edf"><span class="edl">身分證</span><select class="edi" id="ed-di">'+selOpts(docs,e.doc_id)+'</select></div>';h+='<div class="edf"><span class="edl">2吋照片</span><select class="edi" id="ed-dp">'+selOpts(docs,e.doc_photo)+'</select></div>';h+='<div class="edf"><span class="edl">最高學歷證明</span><select class="edi" id="ed-ddeg">'+selOpts(docs,e.doc_degree)+'</select></div><div class="edf"><span class="edl">眷屬資料</span><select class="edi" id="ed-ddep">'+selOpts(docs,e.doc_dep)+'</select></div>';h+=s('🚨 緊急聯絡','#6B2C8C');h+='<div class="edf"><span class="edl">聯絡人</span><input class="edi" id="ed-ec" value="'+f(e.emg_contact)+'"></div>';h+='<div class="edf"><span class="edl">關係</span><select class="edi" id="ed-er">'+selOpts(['','父','母','配偶','兄','姐','弟','妹','子女','朋友','同事','其他'],e.emg_rel)+'</select></div>';h+='<div class="edf"><span class="edl">電話</span><input class="edi" id="ed-ep" value="'+f(e.emg_phone)+'"></div>';h+='<div class="edf" style="grid-column:span 2"><span class="edl">備註</span><input class="edi" id="ed-notes" value="'+f(e.notes)+'"></div></div>';document.getElementById('emp-detail-form').innerHTML=h}
 function addDepRow(){var list=document.getElementById('dep-list');var h='<div class="dep-row" style="display:grid;grid-template-columns:1fr 1.5fr 1fr 0.8fr auto;gap:4px;margin-bottom:6px;padding:8px;background:var(--gray1);border-radius:6px;align-items:end"><div><span class="edl">姓名</span><input class="edi dep-name" value=""></div><div><span class="edl">身分證字號</span><input class="edi dep-id" value=""></div><div><span class="edl">出生年月日</span><input class="edi dep-birth" type="date" value=""></div><div><span class="edl">關係</span><select class="edi dep-rel"><option>配偶</option><option>子女</option><option>父</option><option>母</option><option>其他</option></select></div><div><button class="elt-btn del" onclick="this.parentNode.parentNode.remove()" style="margin-top:14px">✕</button></div></div>';list.insertAdjacentHTML('beforeend',h)}
 function collectDeps(){var deps=[];document.querySelectorAll('.dep-row').forEach(function(row){var n=row.querySelector('.dep-name').value.trim();if(!n)return;deps.push({name:n,id_num:row.querySelector('.dep-id').value.trim(),birth:row.querySelector('.dep-birth').value,rel:row.querySelector('.dep-rel').value})});return deps}
-function saveEmpDetail(){var name=document.getElementById('ed-name').value.trim();if(!name){alert('請輸入姓名');return}var st=[9,0],et=[17,0];var shEl=null,ehEl=null;var g=function(id){return document.getElementById(id)};var d={name:name,role:g('ed-role').value,store:g('ed-store').value,dept:g('ed-dept').value,emp_type:g('ed-etype').value,salary:+g('ed-sal').value||0,allowance:(g('ed-allow')?+g('ed-allow').value:0)||0,full_salary:+g('ed-fullsal').value||0,tax_rate:+g('ed-tax').value||5,ot_method:g('ed-ot').value,pension_self:+g('ed-pen').value||0,ins_date:g('ed-insdate').value,ins_salary:+g('ed-inssal').value||0,ins_adj_date:g('ed-ins-adj-date').value,ins_adj_salary:+g('ed-ins-adj-sal').value||0,sh:st[0],sm:st[1],eh:et[0],em:et[1],id_num:g('ed-idnum').value,gender:g('ed-gender').value,blood_type:g('ed-blood').value,marital:g('ed-marital').value,nationality:g('ed-nationality').value,birth:g('ed-birth').value,education:g('ed-edu').value,school:g('ed-school').value,phone:g('ed-phone').value,email:g('ed-email').value,address:g('ed-addr').value,skills:g('ed-skills').value,hire_date:g('ed-hire').value,leave_date:g('ed-leave').value,leave_reason:g('ed-leave-reason')?g('ed-leave-reason').value:'',contract_end:g('ed-contract-end').value,probation_end:g('ed-probation-end').value,bank_name:g('ed-bname').value,bank:(g('ed-bank').selectedIndex>0?g('ed-bank').options[g('ed-bank').selectedIndex].text:''),bank_code:g('ed-bank').value,branch:g('ed-branch').value,branch_code:g('ed-brcode').value,account:g('ed-acct').value,doc_health:g('ed-dh').value,doc_id:g('ed-di').value,doc_photo:g('ed-dp').value,doc_edu:(g('ed-de')?g('ed-de').value:''),doc_degree:g('ed-ddeg').value,doc_dep:g('ed-ddep').value,emg_contact:g('ed-ec').value,emg_rel:g('ed-er').value,emg_phone:g('ed-ep').value,dep_name:(g('ed-dn')?g('ed-dn').value:''),notes:g('ed-notes').value};pushUndo(editEmpId?'修改員工':'新增員工');var _hireVal=g('ed-hire').value;if(_hireVal){d.emp_no=genEmpNo(_hireVal,editEmpId)}else{d.emp_no=document.getElementById('ed-empno').value||'';}d.dependents_list=collectDeps();d.trainings=collectTrainings();d.certs=collectCerts();d.health_date=g('ed-health-date').value;d.health_expiry=g('ed-health-expiry').value;d.health_result=g('ed-health-result').value;d.dependents=d.dependents_list.length;if(editEmpId){var _existEmp=staff.find(function(x){return x.id===editEmpId});var _oldEmpNo=_existEmp?_existEmp.emp_no:'';Object.assign(_existEmp,d);if(_oldEmpNo&&_oldEmpNo!==d.emp_no&&d.emp_no){var _oldAcct=userAccounts.find(function(a){return a.user===_oldEmpNo});if(_oldAcct){_oldAcct.user=d.emp_no;_oldAcct.pass=hashPass(d.emp_no+'aa');logAudit('帳號','工號變更 '+_oldEmpNo+' → '+d.emp_no+' 密碼已重設')}}}else{var hireDate=document.getElementById('ed-hire').value;if(!hireDate){alert('請填寫到職日期，系統需依到職日產生工號');return}var newEmpNo=genEmpNo(hireDate);d.emp_no=newEmpNo;var newId='e'+Date.now();staff.push(Object.assign({id:newId},d));var defaultPass=hashPass(newEmpNo+'aa');if(!userAccounts.find(function(a){return a.user===newEmpNo.toLowerCase()})){userAccounts.push({user:newEmpNo.toLowerCase(),pass:defaultPass,role:'員工',empId:newId});logAudit('新增','自動建立帳號 '+newEmpNo+' / '+defaultPass)}}if(editEmpId&&d.leave_date){var acct=userAccounts.find(function(a){return a.empId===editEmpId});if(acct){acct.role='已停用';logAudit('停用','員工 '+d.name+' 離職，帳號 '+acct.user+' 已停用')}}saveStaff();logAudit(editEmpId?'修改':'新增',(editEmpId?'修改':'新增')+'員工 '+d.name);closeEmpDetail();renderAll()}
+function saveEmpDetail(){var name=document.getElementById('ed-name').value.trim();if(!name){alert('請輸入姓名');return}var st=[9,0],et=[17,0];var shEl=null,ehEl=null;var g=function(id){return document.getElementById(id)};var d={name:name,role:g('ed-role').value,store:g('ed-store').value,dept:g('ed-dept').value,emp_type:g('ed-etype').value,salary:+g('ed-sal').value||0,allowance:(g('ed-allow')?+g('ed-allow').value:0)||0,full_salary:+g('ed-fullsal').value||0,tax_rate:+g('ed-tax').value||5,ot_method:g('ed-ot').value,pension_self:+g('ed-pen').value||0,ins_date:g('ed-insdate').value,ins_salary:+g('ed-inssal').value||0,ins_adj_date:g('ed-ins-adj-date').value,ins_adj_salary:+g('ed-ins-adj-sal').value||0,sh:st[0],sm:st[1],eh:et[0],em:et[1],id_num:g('ed-idnum').value,gender:g('ed-gender').value,blood_type:g('ed-blood').value,marital:g('ed-marital').value,nationality:g('ed-nationality').value,birth:g('ed-birth').value,education:g('ed-edu').value,school:g('ed-school').value,phone:g('ed-phone').value,email:g('ed-email').value,address:g('ed-addr').value,skills:g('ed-skills').value,hire_date:g('ed-hire').value,leave_date:g('ed-leave').value,leave_reason:g('ed-leave-reason')?g('ed-leave-reason').value:'',contract_end:g('ed-contract-end').value,probation_end:g('ed-probation-end').value,bank_name:g('ed-bname').value,bank:(g('ed-bank').selectedIndex>0?g('ed-bank').options[g('ed-bank').selectedIndex].text:''),bank_code:g('ed-bank').value,branch:g('ed-branch').value,branch_code:g('ed-brcode').value,account:g('ed-acct').value,doc_health:g('ed-dh').value,doc_id:g('ed-di').value,doc_photo:g('ed-dp').value,doc_edu:(g('ed-de')?g('ed-de').value:''),doc_degree:g('ed-ddeg').value,doc_dep:g('ed-ddep').value,emg_contact:g('ed-ec').value,emg_rel:g('ed-er').value,emg_phone:g('ed-ep').value,dep_name:(g('ed-dn')?g('ed-dn').value:''),notes:g('ed-notes').value};pushUndo(editEmpId?'修改員工':'新增員工');var _hireVal=g('ed-hire').value;if(_hireVal){d.emp_no=genEmpNo(_hireVal,editEmpId)}else{d.emp_no=document.getElementById('ed-empno').value||'';}d.dependents_list=collectDeps();d.trainings=collectTrainings();d.certs=collectCerts();d.health_date=g('ed-health-date').value;d.health_expiry=g('ed-health-expiry').value;d.health_result=g('ed-health-result').value;d.dependents=d.dependents_list.length;if(editEmpId){var _existEmp=staff.find(function(x){return x.id===editEmpId});var _oldEmpNo=_existEmp?_existEmp.emp_no:'';Object.assign(_existEmp,d);if(_oldEmpNo&&_oldEmpNo!==d.emp_no&&d.emp_no){var _oldAcct=userAccounts.find(function(a){return a.user===_oldEmpNo});if(_oldAcct){_oldAcct.user=d.emp_no;_oldAcct.pass=hashPass(d.emp_no+'aa');logAudit('帳號','工號變更 '+_oldEmpNo+' → '+d.emp_no+' 密碼已重設')}}}else{var hireDate=document.getElementById('ed-hire').value;if(!hireDate){alert('請填寫到職日期，系統需依到職日產生工號');return}var newEmpNo=genEmpNo(hireDate);d.emp_no=newEmpNo;var newId='e'+Date.now();staff.push(Object.assign({id:newId},d));var defaultPass=hashPass(newEmpNo+'aa');if(!userAccounts.find(function(a){return a.user===newEmpNo.toLowerCase()})){userAccounts.push({user:newEmpNo.toLowerCase(),pass:defaultPass,role:'員工',empId:newId});logAudit('新增','自動建立帳號 '+newEmpNo+' / '+defaultPass)}}if(editEmpId&&d.leave_date){var acct=userAccounts.find(function(a){return a.empId===editEmpId});if(acct){acct.role='已停用';logAudit('停用','員工 '+d.name+' 離職，帳號 '+acct.user+' 已停用')}}saveStaff();if(db){db.collection(fbCol('hrdata')).doc('accounts').set({userAccounts:userAccounts}).catch(function(){})}logAudit(editEmpId?'修改':'新增',(editEmpId?'修改':'新增')+'員工 '+d.name);closeEmpDetail();renderAll()}
 
 function openSal(){switchTab('grade')}
 function closeSal(){}
@@ -1516,7 +1516,8 @@ function resetAcctPass(i){
   if(choice){np=defaultPw}
   else{np=prompt('輸入新密碼（8~16字元，英文+數字）：');if(!np)return;if(np.length<8||np.length>16){alert('密碼長度需8~16字元');return}if(!/[a-zA-Z]/.test(np)||!/[0-9]/.test(np)){alert('密碼需同時包含英文和數字');return}}
   acct.pass=hashPass(np);
-  save();logAudit('修改','重設 '+acct.user+' 密碼');
+  save();if(db){db.collection(fbCol('hrdata')).doc('accounts').set({userAccounts:userAccounts}).catch(function(){})}
+  logAudit('修改','重設 '+acct.user+' 密碼');
   alert('✅ 密碼已重設\n\n帳號：'+acct.user+'\n新密碼：'+np+'\n\n請通知員工登入後修改密碼')
 }
 
@@ -2050,7 +2051,7 @@ function openSurveyMgr(){if(!isBoss()){alert('僅老闆可檢視調查結果');r
 function createSurvey(){var title=prompt('調查主題：','員工滿意度調查');if(!title)return;surveyData.push({id:'sv'+Date.now(),title:title,status:'進行中',created:new Date().toISOString(),questions:['整體工作滿意度(1-5分)','工作環境滿意度(1-5分)','薪資福利滿意度(1-5分)','主管領導滿意度(1-5分)','團隊氛圍滿意度(1-5分)'],responses:[]});saveSurvey();logAudit('調查','發起 '+title);openSurveyMgr()}
 function closeSurvey(sid){var s=surveyData.find(function(x){return x.id===sid});if(s){s.status='已結束';saveSurvey();openSurveyMgr()}}
 function viewSurveyResult(sid){var s=surveyData.find(function(x){return x.id===sid});if(!s)return;var h='<div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px">'+s.title+' ('+s.responses.length+'人回覆)</div>';if(s.responses.length===0){h+='<div style="text-align:center;padding:20px;color:var(--gray4)">尚無回覆</div>'}else{s.questions.forEach(function(q,qi){var sum=0;s.responses.forEach(function(r){sum+=r.scores[qi]||0});var avg=s.responses.length>0?(sum/s.responses.length).toFixed(1):0;var barW=Math.min(avg/5*100,100);var clr=avg>=4?'#16a34a':avg>=3?'#f59e0b':'#dc2626';h+='<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:var(--gray6)">'+q+'</div><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:20px;background:#f0f0f0;border-radius:10px;overflow:hidden"><div style="width:'+barW+'%;height:100%;background:'+clr+';border-radius:10px"></div></div><span style="font-size:14px;font-weight:700;color:'+clr+'">'+avg+'</span></div></div>'})}showHistoryModal('📊 調查結果',h,false)}
-function saveSurvey(){localStorage.setItem('hm_survey',JSON.stringify(surveyData));if(db)db.collection(fbCol('hrdata')).doc('survey').set({data:surveyData}).catch(function(e){alert('⚠ Google Drive 備份失敗\n\n'+e.message+'\n\n請檢查網路連線後重試')})}
+function saveSurvey(){localStorage.setItem('hm_survey',JSON.stringify(surveyData));if(db)db.collection(fbCol('hrdata')).doc('survey').set({data:surveyData}).catch(function(e){alert('問卷儲存失敗：'+e.message)})}
 
 
 var trainingData=[];try{trainingData=JSON.parse(localStorage.getItem('hm_training')||'[]')}catch(e){}
@@ -2545,6 +2546,97 @@ function calcAutoScores(empId){
   result.anomaly={score:anomScore,data:'近3月打卡異常 '+anomaly+'次',key:'at5'};
   result.anomaly_n={score:anomScore,data:'近3月打卡異常 '+anomaly+'次',key:'an5'};
   
+  
+  // === 7. Early leave count (3 months) ===
+  var earlyCount=0;var earlyTotalMin=0;
+  punchRecords.forEach(function(p){
+    if(p.eid!==empId||p.type!=='下班'||!p.date||p.date<startMk)return;
+    var sc2=sched[empId]?sched[empId][p.date]:null;
+    if(!sc2||sc2.eh===undefined)return;
+    var schedEndM=sc2.eh*60+(sc2.em||0);
+    var pOutM=parseInt(p.time.split(':')[0])*60+parseInt(p.time.split(':')[1]);
+    if(pOutM<schedEndM-5){earlyCount++;earlyTotalMin+=(schedEndM-pOutM)}
+  });
+  var earlyScore=earlyCount===0?5:earlyCount<=1?4:earlyCount<=3?3:earlyCount<=5?2:1;
+  result.early={score:earlyScore,data:'近3月早退 '+earlyCount+'次 ('+earlyTotalMin+'分鐘)',key:'at4'};
+
+  // === 8. Missing punch count (current month) ===
+  var missPunch=0;
+  for(var d2=1;d2<=Math.min(todayD,D);d2++){
+    var dk2=curMonth+'-'+String(d2).padStart(2,'0');
+    var sc3=sched[empId]?sched[empId][dk2]:null;
+    var dow2=new Date(now.getFullYear(),now.getMonth(),d2).getDay();
+    var shouldWork=false;
+    if(sc3&&sc3.type==='work')shouldWork=true;
+    else if(!sc3&&dow2!==0)shouldWork=true;
+    if(!shouldWork)continue;
+    if(LEAVE&&sc3&&LEAVE.indexOf(sc3.type)>=0)continue;
+    if(sc3&&sc3.type==='blank')continue;
+    var hasLeave2=leaveRecords.find(function(l){return l.eid===empId&&l.start<=dk2&&l.end>=dk2&&(l.status==='已核准'||l.status==='店長核准')});
+    if(hasLeave2)continue;
+    if(!seen[dk2])missPunch++;
+  }
+  var missScore=missPunch===0?5:missPunch<=1?4:missPunch<=2?3:missPunch<=4?2:1;
+  result.missPunch={score:missScore,data:'本月未打卡 '+missPunch+'天',key:'at5'};
+
+  // === 9. Makeup punch count (3 months) ===
+  var makeupCount=0;
+  if(punchApplies){punchApplies.forEach(function(a){
+    if(a.eid!==empId)return;
+    if(a.submitDate&&a.submitDate>=startMk)makeupCount++;
+  })}
+  var makeupScore=makeupCount===0?5:makeupCount<=1?4:makeupCount<=3?3:makeupCount<=5?2:1;
+  result.makeup={score:makeupScore,data:'近3月補打卡 '+makeupCount+'次',key:'at6'};
+
+  // === 10. Late deduction amount (current month) ===
+  var isPT2=e.role==='兼職'||e.emp_type==='兼職'||(e.salary_type&&e.salary_type.indexOf('時')>=0);
+  var hr2=isPT2?(e.hourly_rate||e.salary||196):((e.salary||0)/240);
+  var deductTotal=0;
+  punchRecords.forEach(function(p){
+    if(p.eid!==empId||p.type!=='上班'||!p.date||!p.date.startsWith(curMonth))return;
+    var sc4=sched[empId]?sched[empId][p.date]:null;
+    if(!sc4||sc4.sh===undefined)return;
+    var schedM2=sc4.sh*60+(sc4.sm||0);
+    var pM2=parseInt(p.time.split(':')[0])*60+parseInt(p.time.split(':')[1]);
+    var late2=pM2-schedM2;
+    if(late2>10){
+      var next30=Math.ceil(pM2/30)*30;
+      var lostMin2=next30-schedM2;
+      deductTotal+=Math.round(hr2*(lostMin2/60)*100)/100;
+    }
+  });
+  var deductScore=deductTotal===0?5:deductTotal<=200?4:deductTotal<=500?3:deductTotal<=1000?2:1;
+  result.deduct={score:deductScore,data:'本月遲到扣薪 $'+Math.round(deductTotal),key:'at7'};
+
+  // === 11. Production completion rate ===
+  if(typeof prodSchedule!=='undefined'&&prodSchedule&&prodSchedule.length>0){
+    var prodTarget=0;var prodActual=0;
+    prodSchedule.forEach(function(ps){
+      if(!ps.date||!ps.date.startsWith(curMonth))return;
+      prodTarget++;
+      if(typeof prodReports!=='undefined'&&prodReports&&prodReports[ps.id]&&prodReports[ps.id][empId]){
+        prodActual++;
+      }
+    });
+    if(prodTarget>0){
+      var prodRate=Math.round(prodActual/prodTarget*100);
+      var prodScore=prodRate>=98?5:prodRate>=95?4:prodRate>=90?3:prodRate>=80?2:1;
+      result.prod={score:prodScore,data:'本月生產完成率 '+prodRate+'% ('+prodActual+'/'+prodTarget+')',key:'op3'};
+    }
+  }
+
+  // === 12. Seniority (reference) ===
+  var seniorMonths=0;
+  if(e.hire_date){
+    var hd=e.hire_date.replace(/\//g,'-');
+    var hp=hd.split('-');
+    var hy=+hp[0];if(hy<200)hy+=1911;
+    var hm=+hp[1]||1;
+    seniorMonths=Math.max(0,(now.getFullYear()-hy)*12+(now.getMonth()+1-hm));
+  }
+  var seniorYears=Math.floor(seniorMonths/12);var seniorMon=seniorMonths%12;
+  result.seniority={score:0,data:'年資 '+seniorYears+'年'+seniorMon+'個月 ('+seniorMonths+'個月)',key:'_ref',isRef:true};
+
   return result;
 }
 
@@ -2554,9 +2646,9 @@ function applyAutoScores(empId){
   var h='<div style="margin:10px 0;padding:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px"><div style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:8px">📊 系統自動評分（依實際數據）</div>';
   for(var k in auto){
     var item=auto[k];
-    _perfScores[item.key]=item.score;
+    if(!item.isRef)_perfScores[item.key]=item.score;
     h+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-bottom:1px solid #e0e7ff">';
-    h+='<span style="font-weight:700;color:#1e40af;min-width:20px">'+item.score+'分</span>';
+    h+='<span style="font-weight:700;color:'+(item.isRef?'#666':'#1e40af')+';min-width:30px">'+(item.isRef?'📋':item.score+'分')+'</span>';
     h+='<span style="color:#333">'+item.data+'</span>';
     h+='</div>';
     applied++;
@@ -2771,6 +2863,254 @@ function autoGDBackup(){if(!isBoss()||!_gdAT)return;var l=localStorage.getItem('
 var GD_CLIENT_ID='48292281688-gr3cu08uu4ib7i9ebdl62pl40ej0ojt7.apps.googleusercontent.com';var _gdTC=null,_gdAT=null,_gdManual=false;function initGDB(){if(typeof google==='undefined'||!google.accounts)return;_gdTC=google.accounts.oauth2.initTokenClient({client_id:GD_CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.file',callback:function(r){if(r.error){alert('⚠ Google Drive 授權失敗\n\n請重新點「📥 雲端備份」授權');_gdManual=false;return}_gdAT=r.access_token;if(_gdManual){_gdManual=false;doGDU()}else{autoGDBackup()}}})}function backupToGDrive(){if(!isBoss()){alert('僅限老闆');return}if(!_gdTC){initGDB();if(!_gdTC){alert('Google元件未載入');return}}_gdManual=true;_gdTC.requestAccessToken()}function doGDU(){if(!_gdAT)return;var n=new Date();var fn='好洺備份_'+n.getFullYear()+pad(n.getMonth()+1)+pad(n.getDate())+'.json';var d=JSON.stringify({v:SYS_VERSION,dt:n.toISOString(),staff:staff,sched:sched,leaveRecords:leaveRecords,payHistory:payHistory,punchRecords:punchRecords,otRecords:otRecords,userAccounts:userAccounts,posChanges:posChanges,auditLog:auditLog,SAL:SAL,INS:INS,rev:rev,salItems:salItems,roleGrades:roleGrades,storeHours:storeHours,attendRule:attendRule});var b=new Blob([d],{type:'application/json'});var m={name:fn,mimeType:'application/json'};var f=new FormData();f.append('metadata',new Blob([JSON.stringify(m)],{type:'application/json'}));f.append('file',b);fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+_gdAT},body:f}).then(function(r){return r.json()}).then(function(x){if(x.id){logAudit('備份','GDrive '+fn);localStorage.setItem('hm_lastGDB',n.toISOString());var btn=document.getElementById('btn-gdbackup');if(btn)btn.textContent='✅ 已備份'}else{alert('⚠ Google Drive 備份失敗\n\n'+(x.error?x.error.message:'未知錯誤')+'\n\n請重試或檢查 Google Cloud 設定')}}).catch(function(e){alert('⚠ Google Drive 備份失敗\n\n'+e.message+'\n\n請檢查網路連線後重試')})}function chkBkRemind(){if(!isBoss())return;var l=localStorage.getItem('hm_lastGDB');var n=new Date();var today=n.toISOString().substring(0,10);if(l&&l.substring(0,10)===today)return;if(_gdTC){_gdTC.requestAccessToken({prompt:''})}}setTimeout(initGDB,3000);setTimeout(chkBkRemind,5000);setTimeout(function(){var b=document.getElementById('btn-gdbackup');if(!b)return;var l=localStorage.getItem('hm_lastGDB');if(l&&l.substring(0,10)===new Date().toISOString().substring(0,10)){b.textContent='✅ 已備份'}else if(l){b.textContent='📥 備份('+l.substring(5,10)+')'}},4000);
 
 var _skipSchedSnapshot=false;
+
+// ===== 出勤比對系統 =====
+function calcNextHalf(schedH,schedM,lateMin){
+  var actualM=schedH*60+schedM+lateMin;
+  var next30=Math.ceil(actualM/30)*30;
+  return{h:Math.floor(next30/60),m:next30%60,lostMin:next30-(schedH*60+schedM)};
+}
+
+function openAttendCompare(){
+  if(!isBoss()&&!(curUser&&curUser.role==='店長')){alert('僅限店長/老闆');return}
+  if(!db){alert('請連線Firebase');return}
+  var mk=(curY+1911)+'-'+pad(curM);
+  db.collection(fbCol('hrdata')).doc('punchRecords').get().then(function(doc){
+    var allPunch=doc.exists?doc.data().data||[]:[];
+    db.collection(fbEnv+'_hrdata').doc('leave').get().then(function(ldoc){
+      var allLeave=ldoc.exists?ldoc.data().leaveRecords||[]:[];
+      renderAttendCompare(allPunch,allLeave,mk);
+    }).catch(function(){renderAttendCompare(allPunch,[],mk)});
+  }).catch(function(e){alert('載入失敗：'+e.message)});
+}
+
+function renderAttendCompare(allPunch,allLeave,mk){
+  var D=new Date(curY+1911,curM,0).getDate();
+  var storeFilter=schedStore||'全部';
+  var emps=staff.filter(function(e){return!e.leave_date&&(storeFilter==='全部'||e.store===storeFilter)});
+  
+  var summary=[];
+  emps.forEach(function(e){
+    var isPT=e.role==='兼職'||e.emp_type==='兼職'||(e.salary_type&&e.salary_type.indexOf('時')>=0);
+    var monthlySal=e.salary||0;
+    var hourlyRate=isPT?(e.hourly_rate||e.salary||196):(monthlySal/240);
+    var totalLateMin=0,lateDays=0,earlyDays=0,absentDays=0,normalDays=0,totalDeduct=0;
+    var details=[];
+    
+    for(var d=1;d<=D;d++){
+      var dateKey=mk+'-'+pad(d);
+      var sc=sched[e.id]?sched[e.id][dateKey]:null;
+      if(!sc||sc.type==='blank')continue;
+      if(LEAVE&&LEAVE.indexOf&&LEAVE.indexOf(sc.type)>=0)continue;
+      if(sc.type!=='work'&&sc.type!=='上班')continue;
+      
+      var schedStart=sc.sh*60+(sc.sm||0);
+      var schedEnd=sc.eh*60+(sc.em||0);
+      
+      var dayPunch=allPunch.filter(function(p){return p.eid===e.id&&p.date===dateKey});
+      var punchIn=dayPunch.find(function(p){return p.type==='上班'});
+      var punchOut=dayPunch.find(function(p){return p.type==='下班'});
+      
+      var hasLeave=allLeave.find(function(l){return l.eid===e.id&&l.start<=dateKey&&l.end>=dateKey&&(l.status==='已核准'||l.status==='店長核准')});
+      
+      if(!punchIn&&!hasLeave){
+        var isPast=new Date(dateKey)<new Date();
+        if(isPast){absentDays++;details.push({date:dateKey,status:'absent',note:'未打卡'})}
+        continue;
+      }
+      if(hasLeave&&!punchIn){details.push({date:dateKey,status:'leave',note:hasLeave.type});continue}
+      
+      var actualInM=0,lateMin=0,deduct=0;
+      if(punchIn){
+        var pt=punchIn.time.split(':');
+        actualInM=+pt[0]*60+(+pt[1]);
+        lateMin=Math.max(0,actualInM-schedStart);
+      }
+      
+      var earlyMin=0;
+      if(punchOut){
+        var pt2=punchOut.time.split(':');
+        var actualOutM=+pt2[0]*60+(+pt2[1]);
+        earlyMin=Math.max(0,schedEnd-actualOutM);
+      }
+      
+      if(lateMin>0){
+        totalLateMin+=lateMin;
+        lateDays++;
+        if(lateMin>10){
+          var next=calcNextHalf(sc.sh,sc.sm||0,lateMin);
+          var lostMin=next.lostMin;
+          deduct=Math.round(hourlyRate*(lostMin/60)*100)/100;
+          totalDeduct+=deduct;
+        }
+      }
+      if(earlyMin>30)earlyDays++;
+      if(lateMin===0&&earlyMin<=5)normalDays++;
+      
+      if(lateMin>0||earlyMin>30||(!punchIn&&!hasLeave)){
+        details.push({date:dateKey,status:lateMin>0?'late':'early',lateMin:lateMin,earlyMin:earlyMin,deduct:deduct,
+          schedTime:fT(sc.sh,sc.sm||0)+'-'+fT(sc.eh,sc.em||0),
+          actualIn:punchIn?punchIn.time.substring(0,5):'─',
+          actualOut:punchOut?punchOut.time.substring(0,5):'─',
+          note:lateMin>10?'薪資從'+fT(Math.floor(calcNextHalf(sc.sh,sc.sm||0,lateMin).h),calcNextHalf(sc.sh,sc.sm||0,lateMin).m)+'算':''
+        });
+      }
+    }
+    
+    summary.push({emp:e,isPT:isPT,hourlyRate:hourlyRate,totalLateMin:totalLateMin,lateDays:lateDays,earlyDays:earlyDays,
+      absentDays:absentDays,normalDays:normalDays,totalDeduct:totalDeduct,
+      loseAttend:totalLateMin>=30,details:details});
+  });
+  
+  showAttendReport(summary,mk);
+}
+
+function showAttendReport(summary,mk){
+  var h='<div style="padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h2 style="font-size:18px;color:#0f1b35">📊 出勤比對報表 — '+mk+'</h2><button onclick="closeAttendReport()" style="padding:6px 16px;background:#eee;border:none;border-radius:6px;cursor:pointer">✕ 關閉</button></div>';
+  
+  var hasAlert=summary.filter(function(s){return s.lateDays>0||s.absentDays>0||s.earlyDays>0});
+  var noIssue=summary.filter(function(s){return s.lateDays===0&&s.absentDays===0&&s.earlyDays===0});
+  
+  if(hasAlert.length>0){
+    h+='<div style="background:#fee2e2;border:2px solid #fca5a5;border-radius:10px;padding:14px;margin-bottom:14px">';
+    h+='<div style="font-size:14px;font-weight:700;color:#991b1b;margin-bottom:8px">🔴 異常人員 ('+hasAlert.length+'人)</div>';
+    h+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
+    h+='<tr style="background:#991b1b;color:#fff"><th style="padding:6px;text-align:left">員工</th><th>類型</th><th>遲到次</th><th>遲到總分</th><th>未打卡</th><th>全勤</th><th>扣薪</th></tr>';
+    hasAlert.forEach(function(s){
+      var attendColor=s.loseAttend?'#991b1b':'#166534';
+      var attendText=s.loseAttend?'❌扣除':'✅保留';
+      h+='<tr style="border-bottom:1px solid #fca5a5">';
+      h+='<td style="padding:6px;font-weight:700">'+s.emp.name+'<br><span style="font-size:10px;color:#666">'+(s.isPT?'兼職':'月薪')+' '+s.emp.store+'</span></td>';
+      h+='<td style="text-align:center">'+(s.isPT?'時薪':'月薪')+'</td>';
+      h+='<td style="text-align:center;color:#991b1b;font-weight:700">'+s.lateDays+'</td>';
+      h+='<td style="text-align:center;font-weight:700;color:'+(s.totalLateMin>=30?'#991b1b':'#92400e')+'">'+s.totalLateMin+'分</td>';
+      h+='<td style="text-align:center;color:#991b1b;font-weight:700">'+(s.absentDays||'─')+'</td>';
+      h+='<td style="text-align:center;color:'+attendColor+';font-weight:700">'+attendText+'</td>';
+      h+='<td style="text-align:center;font-weight:700;color:#991b1b">'+(s.totalDeduct>0?'-$'+Math.round(s.totalDeduct):'─')+'</td>';
+      h+='</tr>';
+      if(s.details.length>0){
+        h+='<tr><td colspan="7" style="padding:4px 6px 10px"><div style="background:#fff;border-radius:6px;padding:8px;font-size:11px">';
+        s.details.forEach(function(d){
+          var icon=d.status==='late'?'⏰':d.status==='absent'?'❌':d.status==='leave'?'🏖':'⚠';
+          var color=d.status==='late'?'#92400e':d.status==='absent'?'#991b1b':d.status==='leave'?'#166534':'#b45309';
+          h+='<div style="display:flex;gap:6px;padding:2px 0;color:'+color+'">';
+          h+='<span>'+icon+' '+d.date.substring(5)+'</span>';
+          if(d.schedTime)h+='<span>排班:'+d.schedTime+'</span>';
+          if(d.actualIn)h+='<span>實際:'+d.actualIn+(d.actualOut?'~'+d.actualOut:'')+'</span>';
+          if(d.lateMin)h+='<span style="font-weight:700">遲到'+d.lateMin+'分</span>';
+          if(d.note)h+='<span style="color:#991b1b">'+d.note+'</span>';
+          if(d.deduct)h+='<span style="color:#991b1b;font-weight:700">扣$'+Math.round(d.deduct)+'</span>';
+          if(d.status==='absent')h+='<span style="font-weight:700">未打卡</span>';
+          if(d.status==='leave')h+='<span>'+d.note+'</span>';
+          h+='</div>';
+        });
+        h+='</div></td></tr>';
+      }
+    });
+    h+='</table></div>';
+  }
+  
+  if(noIssue.length>0){
+    h+='<div style="background:#dcfce7;border:2px solid #86efac;border-radius:10px;padding:14px">';
+    h+='<div style="font-size:14px;font-weight:700;color:#166534;margin-bottom:4px">🟢 正常出勤 ('+noIssue.length+'人)</div>';
+    h+='<div style="font-size:12px;color:#166534">'+noIssue.map(function(s){return s.emp.name}).join('、')+'</div>';
+    h+='</div>';
+  }
+  
+  h+='<div style="margin-top:14px;padding:12px;background:#f0f4ff;border-radius:8px;font-size:11px;color:#4338ca;line-height:1.7">';
+  h+='<b>判定規則：</b><br>';
+  h+='• 遲到 > 10分鐘 → 薪資從下個半點起算<br>';
+  h+='• 月薪人員：月薪÷240=時薪，扣除空班時數<br>';
+  h+='• 兼職人員：遲到≤10分免扣薪，>10分從半點算<br>';
+  h+='• 月累計遲到 ≥ 30分鐘 → 扣全勤獎金</div>';
+  
+  h+='</div>';
+  
+  var ov=document.getElementById('ov-attend-report');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='ov-attend-report';
+    ov.className='ov';
+    ov.onclick=function(ev){if(ev.target===ov)closeAttendReport()};
+    ov.innerHTML='<div class="modal" style="max-width:900px;max-height:90vh;overflow-y:auto"></div>';
+    document.body.appendChild(ov);
+  }
+  ov.querySelector('.modal').innerHTML=h;
+  ov.classList.add('show');
+}
+function closeAttendReport(){var ov=document.getElementById('ov-attend-report');if(ov)ov.classList.remove('show')}
+
+// ===== 新人報到匯入 =====
+var newHireApply=[];
+function loadNewHireApply(){
+  if(!db)return;
+  db.collection(fbCol('hrdata')).doc('newHireApply').onSnapshot(function(doc){
+    newHireApply=doc.exists?doc.data().data||[]:[];
+    var pending=newHireApply.filter(function(a){return a.status==='待匯入'});
+    var badge=document.getElementById('newhire-badge');
+    if(badge)badge.textContent=pending.length>0?pending.length:'';
+    if(badge)badge.style.display=pending.length>0?'inline-block':'none';
+  });
+}
+function openNewHireList(){
+  if(!isBoss()){alert('僅限老闆');return}
+  var pending=newHireApply.filter(function(a){return a.status==='待匯入'});
+  var done=newHireApply.filter(function(a){return a.status==='已匯入'});
+  var h='<div style="padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h2 style="font-size:18px;color:#0f1b35">📋 新人報到資料</h2><button onclick="closeNewHireList()" style="padding:6px 16px;background:#eee;border:none;border-radius:6px;cursor:pointer">✕</button></div>';
+  if(pending.length===0){h+='<div style="text-align:center;padding:30px;color:#888">目前沒有待匯入的報到資料</div>'}
+  pending.forEach(function(a,i){
+    h+='<div style="background:#eff6ff;border:2px solid #3b82f6;border-radius:12px;padding:14px;margin-bottom:12px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:16px;font-weight:700;color:#0f1b35">'+a.name+'</span><span style="font-size:11px;color:#888">'+a.submitDate.substring(0,10)+'</span></div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#333">';
+    var fields=[["身分證",a.id_num],["性別",a.gender],["生日",a.birth],["學歷",a.edu],["學校",a.school],["電話",a.phone],["Email",a.email],["地址",a.address],["血型",a.blood],["婚姻",a.marital],["國籍",a.nationality],["緊急聯絡",a.emerg_name+" "+a.emerg_phone+" ("+a.emerg_rel+")"],["銀行",a.bank+" "+a.branch],["帳號",a.bank_acct],["戶名",a.bank_name],["體檢",(a.health_date||"未提供")+" "+(a.health_result||"")],["證照",(a.certs&&a.certs.length>0)?a.certs.map(function(ct){return ct.name}).join("、"):"無"]];
+    fields.forEach(function(f){if(f[1])h+="<div><span style='color:#888'>"+f[0]+"：</span><b>"+f[1]+"</b></div>"});
+    h+='</div>';
+    h+='<div style="display:flex;gap:8px;margin-top:10px">';
+    h+='<button onclick="importNewHire('+i+')" style="flex:1;padding:10px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✅ 匯入員工資料</button>';
+    h+='<button onclick="rejectNewHire('+i+')" style="padding:10px 16px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;font-size:13px;cursor:pointer">✕</button>';
+    h+='</div></div>';
+  });
+  if(done.length>0){
+    h+='<div style="margin-top:16px;font-size:12px;color:#888;font-weight:700">已匯入 ('+done.length+')</div>';
+    done.forEach(function(a){h+='<div style="padding:6px;font-size:12px;color:#888">✅ '+a.name+' → '+a.importedEmpNo+' ('+a.importDate.substring(0,10)+')</div>'});
+  }
+  h+='</div>';
+  var ov=document.getElementById('ov-newhire');
+  if(!ov){ov=document.createElement('div');ov.id='ov-newhire';ov.className='ov';ov.onclick=function(ev){if(ev.target===ov)closeNewHireList()};ov.innerHTML='<div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto"></div>';document.body.appendChild(ov)}
+  ov.querySelector('.modal').innerHTML=h;ov.classList.add('show');
+}
+function closeNewHireList(){var ov=document.getElementById('ov-newhire');if(ov)ov.classList.remove('show')}
+function importNewHire(idx){
+  var a=newHireApply.filter(function(x){return x.status==='待匯入'})[idx];
+  if(!a){alert('找不到資料');return}
+  var hireDate=prompt('到職日期（YYYY-MM-DD）：',new Date().toISOString().substring(0,10));
+  if(!hireDate)return;
+  var role=prompt('職稱：','兼職');if(!role)return;
+  var store=prompt('門市（總公司/交大店/台積電店）：','總公司');if(!store)return;
+  var empType=prompt('雇用類別（全職/兼職/實習生）：','兼職');if(!empType)return;
+  var hp=hireDate.split('-');var empNo=String(+hp[0]-1911)+hp[1]+hp[2];
+  var existing=staff.filter(function(e){return e.id&&e.id.startsWith(empNo)});
+  empNo+=String(existing.length+1).padStart(2,'0');
+  var newEmp={name:a.name,id_num:a.id_num,gender:a.gender,birth:a.birth,blood:a.blood,marital:a.marital,nationality:a.nationality,edu:a.edu,school:a.school,phone:a.phone,email:a.email,address:a.address,emerg_name:a.emerg_name,emerg_phone:a.emerg_phone,emerg_rel:a.emerg_rel,bank_name:a.bank_name,bank:a.bank,bank_code:a.bank_code,branch:a.branch,branch_code:a.branch_code,bank_acct:a.bank_acct,health_date:a.health_date||'',health_result:a.health_result||'',certs:a.certs||[],role:role,store:store,emp_type:empType,hire_date:hireDate,emp_no:empNo,salary:0,allowance:0,full_salary:0};
+  staff.push(Object.assign({id:'e'+Date.now()},newEmp));
+  var defaultPass=hashPass(empNo+'aa');
+  userAccounts.push({user:empNo.toLowerCase(),pass:defaultPass,role:'員工',empId:staff[staff.length-1].id});
+  a.status='已匯入';a.importDate=new Date().toISOString();a.importedEmpNo=empNo;
+  saveStaff();
+  if(db){db.collection(fbCol('hrdata')).doc('accounts').set({userAccounts:userAccounts}).catch(function(){});db.collection(fbCol('hrdata')).doc('newHireApply').set({data:newHireApply}).catch(function(){})}
+  logAudit('新增','匯入新人 '+a.name+' → '+empNo);
+  alert('✅ 匯入成功！\n\n員工：'+a.name+'\n工號：'+empNo+'\n帳號：'+empNo+'\n預設密碼：'+empNo+'aa\n\n請通知員工使用APP登入');
+  openNewHireList();
+}
+function rejectNewHire(idx){
+  var a=newHireApply.filter(function(x){return x.status==='待匯入'})[idx];
+  if(!a)return;
+  if(!confirm('確定刪除 '+a.name+' 的報到資料？'))return;
+  a.status='已刪除';
+  if(db)db.collection(fbCol('hrdata')).doc('newHireApply').set({data:newHireApply}).catch(function(){});
+  openNewHireList();
+}
+setTimeout(loadNewHireApply,2000);
 </script>
 </body>
 </html>
