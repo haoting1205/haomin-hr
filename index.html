@@ -1480,7 +1480,7 @@ function getCertAlertHtml(){var alerts=getCertAlerts();if(!alerts.length)return'
 // ===== LOGIN / AUTH =====
 function doLogin(){var u=document.getElementById('login-user').value.trim();var p=document.getElementById('login-pass').value;var acct=userAccounts.find(function(a){return a.user.toLowerCase()===u.toLowerCase()&&verifyPass(p,a.pass)});if(acct&&acct.role==='已停用'){var err=document.getElementById('login-err');err.textContent='此帳號已停用（員工已離職）';err.style.display='block';return}if(!acct){var err=document.getElementById('login-err');err.textContent='帳號或密碼錯誤';err.style.display='block';return}curUser=acct;if(document.getElementById('login-remember').checked){localStorage.setItem('hm_session',JSON.stringify({user:acct.user,pass:p}))}document.getElementById('login-screen').style.display='none';applyRole(acct.role,acct.empId);logAudit('登入','帳號 '+u+' ('+acct.role+')');if(verifyPass(acct.user+'aa',acct.pass)){setTimeout(function(){if(confirm('⚠ 您目前使用預設密碼\n\n為保護帳號安全，建議立即修改密碼。\n\n按「確定」立即修改\n按「取消」稍後再改')){changeMyPass()}},1000)}}
 function doLogout(){curUser=null;localStorage.removeItem('hm_session');document.getElementById('login-screen').style.display='flex';document.getElementById('login-user').value='';document.getElementById('login-pass').value='';document.getElementById('login-err').style.display='none'}
-function applyRole(role,empId){if(!curUser)curUser={};curUser.role=role;curUser.empId=empId;localStorage.setItem('hm_role',role);setTimeout(function(){try{var _st=JSON.parse(localStorage.getItem('hm_lastState')||'null');if(_st){if(_st.curY)curY=_st.curY;if(_st.curM)curM=_st.curM;var _sy=document.getElementById('sy');if(_sy)_sy.value=curY;var _sm=document.getElementById('sm');if(_sm)_sm.value=curM;if(_st.store){schedStore=_st.store;var ss=document.getElementById('sched-store');if(ss)ss.value=schedStore}if(_st.tab)switchTab(_st.tab);renderAll()}}catch(e){}},500);
+function applyRole(role,empId){if(!curUser)curUser={};curUser.role=role;curUser.empId=empId;localStorage.setItem('hm_role',role);setTimeout(loadNewHireApply,1000);setTimeout(function(){try{var _st=JSON.parse(localStorage.getItem('hm_lastState')||'null');if(_st){if(_st.curY)curY=_st.curY;if(_st.curM)curM=_st.curM;var _sy=document.getElementById('sy');if(_sy)_sy.value=curY;var _sm=document.getElementById('sm');if(_sm)_sm.value=curM;if(_st.store){schedStore=_st.store;var ss=document.getElementById('sched-store');if(ss)ss.value=schedStore}if(_st.tab)switchTab(_st.tab);renderAll()}}catch(e){}},500);
 var tabs=document.querySelectorAll('.tab');
 var bossTabs=['排班表','請假管理','出勤報表','薪資計算','員工資料','考績表','各職級薪資','勞健退設定','操作紀錄','人資表單下載'];
 var mgrTabs=['排班表','請假管理','出勤報表','員工資料','考績表'];
@@ -3047,6 +3047,9 @@ function loadNewHireApply(){
   db.collection(fbCol('hrdata')).doc('newHireApply').onSnapshot(function(doc){
     newHireApply=doc.exists?doc.data().data||[]:[];
     var pending=newHireApply.filter(function(a){return a.status==='待匯入'});
+    var prevCount=+(localStorage.getItem('hm_newhire_count')||'0');
+    if(pending.length>0&&pending.length>prevCount){alert('📋 新人報到通知\n\n有 '+pending.length+' 位新人提交報到資料\n最新：'+pending[pending.length-1].name+'\n\n請到「📋 新人報到」查看並匯入')}
+    localStorage.setItem('hm_newhire_count',pending.length);
     var badge=document.getElementById('newhire-badge');
     if(badge)badge.textContent=pending.length>0?pending.length:'';
     if(badge)badge.style.display=pending.length>0?'inline-block':'none';
@@ -3110,7 +3113,7 @@ function rejectNewHire(idx){
   if(db)db.collection(fbCol('hrdata')).doc('newHireApply').set({data:newHireApply}).catch(function(){});
   openNewHireList();
 }
-setTimeout(loadNewHireApply,2000);
+/* loadNewHireApply moved to after login */
 </script>
 </body>
 </html>
