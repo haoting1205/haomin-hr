@@ -322,6 +322,11 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 /* Tooltip style */
 [title]{position:relative}
 
+
+/* v3.3.0 控制列固定：捲動時月份/門市下拉與◀▶切換固定於頂列下方 */
+.sched-bar{position:sticky;top:var(--bar-h);z-index:150}
+.emp-toolbar{position:sticky;top:var(--bar-h);z-index:150;background:#eef2f7;padding:10px 0;margin:-2px 0 8px}
+.batch-toolbar{position:sticky;top:var(--bar-h);z-index:140}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -365,7 +370,7 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
   <div class="tab" style="position:relative" onclick="toggleDL(event)" id="tab-dl"><span class="tab-icon">📋</span>人資表單下載 ▾<div id="dl-menu" style="display:none;position:absolute;top:100%;left:0;margin-top:0;background:var(--white);border:1px solid var(--gray2);border-radius:0 0 8px 8px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:220px;z-index:300;overflow:hidden"><div style="padding:6px 12px;font-size:10px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.4px;background:var(--gray1)">選擇下載項目</div><div class="dl-item" onclick="dlForm('sched')">📅 排班表（當月）</div><div class="dl-item" onclick="dlForm('pay')">💰 薪資計算表</div><div class="dl-item" onclick="dlForm('emp')">👤 員工名冊</div><div class="dl-item" onclick="dlForm('payslip')">📄 全員薪資單</div><div class="dl-item" onclick="dlForm('all')">📦 全部匯出（多工作表）</div><div style="padding:6px 12px;font-size:10px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.4px;background:var(--gray1);border-top:2px solid var(--gray2)">人資表單範本</div><div class="dl-item" onclick="openContractBatch()">📃 勞動契約（選擇員工）</div><div class="dl-item" onclick="openSepCertBatch()">📜 離職證明（選擇員工）</div><div class="dl-item" onclick="openResignBatch()">📝 離職申請書（選擇員工）</div><div class="dl-item" onclick="openRegulations()">📖 人事管理規章</div><a class="dl-item" id="dl-leave" style="display:block;text-decoration:none;color:var(--gray6)" download="請假申請書.docx">📝 請假申請書</a><a class="dl-item" id="dl-apply" style="display:block;text-decoration:none;color:var(--gray6)" download="應徵資料表.docx">📝 應徵資料表</a><a class="dl-item" id="dl-resign" style="display:block;text-decoration:none;color:var(--gray6)" download="離職申請書.docx">📝 離職申請書</a></div></div>
 </div>
 <div class="panel active" id="panel-sched">
-  <div class="sched-bar"><span style="font-size:12px;color:var(--gold2);font-weight:700">門市</span><select class="bar-sel" id="sched-store" style="min-width:100px;font-weight:700" onchange="schedStore=this.value;refreshSchedStore();renderSched()"></select><span id="sched-store-hours" style="font-size:13px;font-weight:700;color:var(--gold2);margin-left:6px;font-family:JetBrains Mono,monospace"></span><div style="width:1px;height:18px;background:var(--navy3);margin:0 4px"></div><span style="font-size:11px;color:#b0b8d0;font-weight:600">班制</span><select class="bar-sel" id="stype" onchange="renderSched()"><option>一般(做五休二)</option><option>四週變形工時</option></select><div style="width:1px;height:18px;background:var(--navy3);margin:0 4px"></div><button class="bar-btn" style="background:rgba(212,168,67,.2);border-color:var(--gold3);color:var(--gold2)" onclick="openBulkModal()">⚡ 批量時間</button><button class="bar-btn" style="background:rgba(16,163,127,.12);border-color:#0d9488;color:#0d9488" onclick="openShiftTemplate()">📋 班別範本</button><button class="bar-btn" style="background:rgba(99,102,241,.12);border-color:#6366f1;color:#4f46e5" onclick="copyLastMonth()">📑 複製上月</button><button class="bar-btn b-emp" onclick="openStaff()">＋ 新增/刪除員工</button><button class="bar-btn" style="background:rgba(124,58,237,.12);border-color:var(--purple);color:#6d28d9" onclick="openSchedSal()">職級薪資設定</button><button class="bar-btn" style="background:rgba(6,182,212,.12);border-color:var(--cyan);color:#0e7490" onclick="openAddSupport()">跨店支援</button><button class="bar-btn" style="background:rgba(234,88,12,.12);border-color:var(--orange);color:#c2410c" onclick="openStoreHours()">🕐 開閉店時間</button><button class="bar-btn" style="background:rgba(37,99,235,.12);border-color:var(--blue);color:#2563eb" onclick="openStoreNotes()">📋 交接事項</button><button class="bar-btn" style="background:rgba(139,92,246,.12);border-color:#8b5cf6;color:#7c3aed" onclick="openPreLeaveManager()">🗓 劃休管理</button><button class="bar-btn" style="background:rgba(37,99,235,.12);border-color:#2563eb;color:#93c5fd" onclick="openSchedSuggest()">🤖 排班合規檢查</button><button class="bar-btn" style="background:rgba(16,163,74,.12);border-color:#16a34a;color:#dcfce7" onclick="alert('POS串接功能開發中，需確認POS系統資料格式')" title="功能開發中" style="opacity:0.4;cursor:not-allowed">📊 POS匯入(開發中)</button><button class="bar-btn" id="btn-sched-confirm" style="background:rgba(220,38,38,.12);border-color:#dc2626;color:#fca5a5;font-size:11px" onclick="toggleSchedConfirm()">☐ 未核對</button><button class="bar-btn" id="btn-sched-lock" style="background:rgba(220,38,38,.12);border-color:#dc2626;color:#fca5a5;font-size:11px;display:none" onclick="toggleSchedLock()">🔓</button></div>
+  <div class="sched-bar"><span style="font-size:12px;color:var(--gold2);font-weight:700">門市</span><select class="bar-sel" id="sched-store" style="min-width:100px;font-weight:700" onchange="schedStore=this.value;refreshSchedStore();renderSched()"></select><span id="sched-store-hours" style="font-size:13px;font-weight:700;color:var(--gold2);margin-left:6px;font-family:JetBrains Mono,monospace"></span><div style="width:1px;height:18px;background:var(--navy3);margin:0 4px"></div><span style="font-size:11px;color:#b0b8d0;font-weight:600">班制</span><select class="bar-sel" id="stype" onchange="renderSched()"><option>一般(做五休二)</option><option>四週變形工時</option></select><div style="width:1px;height:18px;background:var(--navy3);margin:0 4px"></div><button class="bar-btn" style="background:rgba(212,168,67,.2);border-color:var(--gold3);color:var(--gold2)" onclick="openBulkModal()">⚡ 批量時間</button><button class="bar-btn" style="background:rgba(16,163,127,.12);border-color:#0d9488;color:#0d9488" onclick="openShiftTemplate()">📋 班別範本</button><button class="bar-btn" style="background:rgba(99,102,241,.12);border-color:#6366f1;color:#4f46e5" onclick="copyLastMonth()">📑 複製上月</button><button class="bar-btn b-emp" onclick="openStaff()">＋ 新增/刪除員工</button><button class="bar-btn" style="background:rgba(124,58,237,.12);border-color:var(--purple);color:#6d28d9" onclick="openSchedSal()">職級薪資設定</button><button class="bar-btn" style="background:rgba(6,182,212,.12);border-color:var(--cyan);color:#0e7490" onclick="openAddSupport()">跨店支援</button><button class="bar-btn" style="background:rgba(234,88,12,.12);border-color:var(--orange);color:#c2410c" onclick="openStoreHours()">🕐 開閉店時間</button><button class="bar-btn" style="background:rgba(37,99,235,.12);border-color:var(--blue);color:#2563eb" onclick="openStoreNotes()">📋 交接事項</button><button class="bar-btn" style="background:rgba(13,148,136,.15);border-color:#0d9488;color:#5eead4" onclick="openPunchGrid()">🕐 打卡記錄表</button><button class="bar-btn" style="background:rgba(139,92,246,.12);border-color:#8b5cf6;color:#7c3aed" onclick="openPreLeaveManager()">🗓 劃休管理</button><button class="bar-btn" style="background:rgba(37,99,235,.12);border-color:#2563eb;color:#93c5fd" onclick="openSchedSuggest()">🤖 排班合規檢查</button><button class="bar-btn" style="background:rgba(16,163,74,.12);border-color:#16a34a;color:#dcfce7" onclick="alert('POS串接功能開發中，需確認POS系統資料格式')" title="功能開發中" style="opacity:0.4;cursor:not-allowed">📊 POS匯入(開發中)</button><button class="bar-btn" id="btn-sched-confirm" style="background:rgba(220,38,38,.12);border-color:#dc2626;color:#fca5a5;font-size:11px" onclick="toggleSchedConfirm()">☐ 未核對</button><button class="bar-btn" id="btn-sched-lock" style="background:rgba(220,38,38,.12);border-color:#dc2626;color:#fca5a5;font-size:11px;display:none" onclick="toggleSchedLock()">🔓</button></div>
   <div class="wrap"><table id="tbl"></table></div>
 </div>
 <div class="panel" id="panel-pay"><div class="payroll-wrap"><div class="payroll-header"><div class="section-title">薪資計算明細</div><div style="display:flex;align-items:center;gap:8px;margin-left:auto"><button class="bar-btn" style="background:rgba(22,163,74,.15);border-color:#16a34a;color:#16a34a" onclick="commitPayroll()">✓ 薪資雲端存檔</button><button class="bar-btn" style="background:rgba(124,58,237,.15);border-color:var(--purple);color:var(--purple)" onclick="openSalItems()">⚙ 新增薪資種類</button><button class="bar-btn" style="background:rgba(212,168,67,.15);border-color:var(--gold3);color:var(--gold2)" onclick="openBatchPayslip()">📧 批量發送薪資單</button><button class="bar-btn" style="background:rgba(6,182,212,.12);border-color:#0e7490;color:#0e7490" onclick="exportBankTransfer()">🏦 轉帳檔</button><button class="bar-btn" style="background:rgba(234,88,12,.12);border-color:var(--orange);color:#c2410c" onclick="exportTaxCert()">📄 扣繳憑單</button><button class="bar-btn" style="background:rgba(245,158,11,.12);border-color:#f59e0b;color:#92400e" onclick="openBonusMgr()">🎁 獎金發放</button></div></div><div style="overflow:auto;max-height:calc(100vh - 200px)"><table class="pay-table" id="pay-tbl"></table></div><div class="pay-note" id="pay-note"></div></div></div>
@@ -1064,6 +1069,8 @@ var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,rad
 var SYS_VERSION='3.3.0';
 var SYS_BUILD='20260505001';
 var SYS_CHANGELOG=[
+{ver:'3.4.0',build:'20260521003',date:'2026-05-21',changes:['排班表新增「🕐打卡記錄表」按鈕：員工×日期格狀視圖，每格顯示實際上/下班打卡時間','打卡記錄表自動對照排班標色比對：正常(綠)/遲到(黃)/缺卡(紅)/未排班有打卡(藍)/請假(紫)','滑鼠移到格子顯示排班時間與遲到分鐘數','可直接從打卡記錄表跳轉遲到扣薪統計']},
+{ver:'3.3.0',build:'20260521002',date:'2026-05-21',changes:['修正同日新進員工工號重複根因（autoFillEmpNo+onSnapshot競態）','genEmpNo新增全域唯一性防線（工號被佔用自動遞增，根治所有匯入路徑）','autoFillEmpNo密碼改用hashPass、帳號小寫，與其他路徑一致','所有控制列固定：捲動時排班月份切換◀▶/門市下拉/年月下拉/工具列固定於頂列下方，方便快速上下左右操作']},
 {ver:'3.2.0',build:'20260521001',date:'2026-05-21',changes:['修正新人報到匯入「同日多人工號重複」嚴重Bug（原誤用e.id判斷，序號永遠為01）','新人匯入工號改用genEmpNo()正確邏輯（掃描同日emp_no最大序號自動+1）','新人匯入介面改為彈出表單，門市/職稱/雇用類別改為下拉選單（避免手動輸入打錯字）','匯入表單即時預覽預計工號與預設密碼','修正匯入欄位對應(edu→education/bank_acct→account/emerg_→emg_)，匯入後員工資料完整顯示']},
 {ver:'3.1.0',build:'20260426003',date:'2026-04-26',changes:['📋 門市日報表（每日營業額/人數/工時/產能/成本%）','🤖 排班自動建議（依上月營業額建議人力）','⏱ 加班時數月報（統計+46h超標警示）','📝 員工滿意度調查（5項/匿名/結果圖表）','📚 教育訓練紀錄（項目/日期/完成狀態）','💹 人力成本預算（預算vs實際/使用率）','🏪 多店營運儀表板（跨店比較一覽）','管理端SOP更新至27章']},
 {ver:'3.0.0',build:'20260426002',date:'2026-04-26',changes:['🔐 權限管理（老闆全功能/店長5分頁+本店員工/薪資僅老闆可見）','📊 排班vs打卡差異報表（遲到/缺打卡/差異統計）','🔄 員工換班申請（APP提出→店長審核→自動交換班次）','💰 薪資條APP通知（一鍵推送→員工APP首頁顯示）','🏥 證照/體檢到期追蹤（過期/即將到期/正常分類）','管理端SOP更新至20章']},
@@ -1175,7 +1182,7 @@ var SYS_CHANGELOG=[
 ];
 
 
-function genEmpNo(hireDate,excludeId){if(!hireDate)return'';var parts=hireDate.split('-');if(parts.length!==3)return'';var rocY=+parts[0]-1911;var m=parts[1];var d=parts[2];var dateCode=String(rocY)+m+d;var seq=1;staff.forEach(function(e){if(excludeId&&e.id===excludeId)return;if(e.emp_no&&e.emp_no.substring(0,7)===dateCode){var s=parseInt(e.emp_no.substring(7));if(s>=seq)seq=s+1}});return dateCode+String(seq).padStart(2,'0')}
+function genEmpNo(hireDate,excludeId){if(!hireDate)return'';var parts=hireDate.split('-');if(parts.length!==3)return'';var rocY=+parts[0]-1911;var m=parts[1];var d=parts[2];var dateCode=String(rocY)+m+d;var seq=1;staff.forEach(function(e){if(excludeId&&e.id===excludeId)return;if(e.emp_no&&e.emp_no.substring(0,7)===dateCode){var s=parseInt(e.emp_no.substring(7));if(s>=seq)seq=s+1}});var candidate,taken;do{candidate=dateCode+String(seq).padStart(2,'0');taken=staff.some(function(e){return(!excludeId||e.id!==excludeId)&&e.emp_no===candidate})||userAccounts.some(function(a){return a.user===candidate.toLowerCase()});if(taken)seq++}while(taken);return candidate}
 
 var staff=[];
 var curY=115,curM=5,eEmp=null,eDate=null,eType='上班',editEmpId=null,storeFilter='全部',editStaffId=null,schedStore='';
@@ -1844,7 +1851,7 @@ h+='</body></html>';
 var w=window.open('','regulations','width=800,height=900');w.document.write(h);w.document.close()}
 
 
-function autoFillEmpNo(){var changed=false;staff.forEach(function(e){if(!e.emp_no&&e.hire_date&&!e.leave_date){e.emp_no=genEmpNo(e.hire_date);if(!userAccounts.find(function(a){return a.user===e.emp_no})){userAccounts.push({user:e.emp_no,pass:e.emp_no+'aa',role:e.role==='店長'||e.role==='儲備店長'||e.role==='副店長'?'店長':'員工',empId:e.id})}changed=true;logAudit('補號','員工 '+e.name+' 自動補工號 '+e.emp_no)}});if(changed){save();renderEmpGrid()}}
+function autoFillEmpNo(){var changed=false;staff.forEach(function(e){if(!e.emp_no&&e.hire_date&&!e.leave_date){e.emp_no=genEmpNo(e.hire_date);if(!userAccounts.find(function(a){return a.user===e.emp_no.toLowerCase()})){userAccounts.push({user:e.emp_no.toLowerCase(),pass:hashPass(e.emp_no+'aa'),role:e.role==='店長'||e.role==='儲備店長'||e.role==='副店長'?'店長':'員工',empId:e.id})}changed=true;logAudit('補號','員工 '+e.name+' 自動補工號 '+e.emp_no)}});if(changed){save();renderEmpGrid()}}
 
 
 function getSchedConfirmKey(){return schedStore+'_'+(curY+1911)+'-'+pad(curM)}
@@ -2873,6 +2880,62 @@ function calcNextHalf(schedH,schedM,lateMin){
   var next30=Math.ceil(actualM/30)*30;
   return{h:Math.floor(next30/60),m:next30%60,lostMin:next30-(schedH*60+schedM)};
 }
+
+function openPunchGrid(){
+  if(!isBoss()&&!(curUser&&curUser.role==='店長')){alert('僅限老闆或店長');return}
+  var mk=(curY+1911)+'-'+pad(curM);
+  var D=new Date(curY+1911,curM,0).getDate();
+  var sf=schedStore||'全部';
+  var emps=staff.filter(function(e){return!e.leave_date&&(sf==='全部'||e.store===sf)});
+  var DOWX=['日','一','二','三','四','五','六'];
+  var todayStr=new Date().toISOString().substring(0,10);
+  var h='<div style="padding:16px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h2 style="font-size:17px;color:#0f1b35">🕐 實際打卡記錄表 — '+mk+'（'+sf+'）</h2><button onclick="closePunchGrid()" style="padding:6px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer">✕</button></div>';
+  h+='<div style="font-size:11px;color:#555;margin-bottom:8px">每格上=上班打卡 / 下=下班打卡，自動對照排班：<span style="background:#dcfce7;padding:1px 6px;border-radius:4px">正常</span> <span style="background:#fef3c7;padding:1px 6px;border-radius:4px">遲到</span> <span style="background:#fee2e2;padding:1px 6px;border-radius:4px">缺卡</span> <span style="background:#dbeafe;padding:1px 6px;border-radius:4px">未排班有打卡</span>　灰字=排班時間(尚未到/未打卡)</div>';
+  if(emps.length===0){h+='<div style="text-align:center;padding:30px;color:#888">此門市無在職員工</div>'}
+  else{
+    h+='<div style="overflow:auto;max-height:72vh;border:1px solid #e5e7eb;border-radius:8px"><table style="border-collapse:collapse;font-size:11px"><thead><tr><th style="position:sticky;left:0;top:0;background:#1B4F8A;color:#fff;padding:6px 8px;z-index:3;min-width:90px">員工</th>';
+    for(var d=1;d<=D;d++){var dw=new Date(curY+1911,curM-1,d).getDay();h+='<th style="position:sticky;top:0;background:'+(dw===0||dw===6?'#7B3000':'#1B4F8A')+';color:#fff;padding:4px 3px;min-width:50px;z-index:2">'+d+'<br><span style="font-size:9px;opacity:.8">'+DOWX[dw]+'</span></th>'}
+    h+='</tr></thead><tbody>';
+    emps.forEach(function(e){
+      h+='<tr><td style="position:sticky;left:0;background:#fff;font-weight:700;padding:4px 8px;border:1px solid #eee;white-space:nowrap;z-index:1">'+e.name+'<br><span style="font-size:9px;color:#888;font-family:JetBrains Mono,monospace">'+(e.emp_no||'')+'</span></td>';
+      for(var d=1;d<=D;d++){
+        var dk2=mk+'-'+pad(d);
+        var sc=sched[e.id]?sched[e.id][dk2]:null;
+        var hasSched=sc&&sc.type!=='blank'&&LEAVE.indexOf(sc.type)<0;
+        var isLeave=sc&&LEAVE.indexOf(sc.type)>=0;
+        var dayP=punchRecords.filter(function(p){return p.eid===e.id&&p.date===dk2});
+        var pin=dayP.find(function(p){return p.type==='上班'});
+        var pout=dayP.find(function(p){return p.type==='下班'});
+        var bg='#fafafa',txt='',title='';
+        if(isLeave){bg='#f3e8ff';txt='<span style="color:#7c3aed;font-size:10px">'+sc.type+'</span>'}
+        else if(pin||pout){
+          var inT=pin?pin.time.substring(0,5):'—';
+          var outT=pout?pout.time.substring(0,5):'—';
+          txt='<div style="color:#166534;font-weight:700">'+inT+'</div><div style="color:#991b1b">'+outT+'</div>';
+          if(hasSched){
+            var schedStartM=sc.sh*60+(sc.sm||0);var late=false;
+            if(pin){var pm=parseInt(pin.time.substring(0,2))*60+parseInt(pin.time.substring(3,5));if(pm>schedStartM){late=true;title='排班 '+pad(sc.sh)+':'+pad(sc.sm||0)+' 遲到'+(pm-schedStartM)+'分'}}
+            bg=late?'#fef3c7':'#dcfce7';
+          }else{bg='#dbeafe';title='未排班但有打卡'}
+        }else if(hasSched){
+          var isPast=dk2<todayStr;
+          if(isPast){bg='#fee2e2';txt='<span style="color:#991b1b;font-size:10px">缺卡</span>';title='排班 '+pad(sc.sh)+':'+pad(sc.sm||0)+'-'+pad(sc.eh)+':'+pad(sc.em||0)+' 未打卡'}
+          else{txt='<span style="color:#bbb;font-size:10px">'+pad(sc.sh)+':'+pad(sc.sm||0)+'</span>';title='排班(尚未到)'}
+        }
+        h+='<td title="'+title+'" style="background:'+bg+';border:1px solid #eee;text-align:center;padding:2px;font-family:JetBrains Mono,monospace;line-height:1.3">'+txt+'</td>';
+      }
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div style="margin-top:10px;text-align:right"><button onclick="openAttendCompare()" style="padding:8px 16px;background:#1B4F8A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">📊 查看遲到扣薪統計</button></div>';
+  }
+  h+='</div>';
+  var ov=document.getElementById('ov-punchgrid');
+  if(!ov){ov=document.createElement('div');ov.id='ov-punchgrid';ov.className='ov';ov.onclick=function(ev){if(ev.target===ov)closePunchGrid()};ov.innerHTML='<div class="modal" style="max-width:96vw;max-height:94vh;overflow:auto"></div>';document.body.appendChild(ov)}
+  ov.querySelector('.modal').innerHTML=h;ov.classList.add('show');
+}
+function closePunchGrid(){var ov=document.getElementById('ov-punchgrid');if(ov)ov.classList.remove('show')}
 
 function openAttendCompare(){
   if(!isBoss()&&!(curUser&&curUser.role==='店長')){alert('僅限店長/老闆');return}
