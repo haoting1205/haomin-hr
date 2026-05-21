@@ -711,7 +711,8 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 <b>Step 4</b>　系統自動建立帳號（工號=帳號），預設密碼：工號+aa<br>
 <b>Step 5</b>　告知員工APP網址、帳號、預設密碼，首次登入會自動提醒修改密碼<br>
 <b>Step 6</b>　點 ✅到職引導 → 完成17項 Checklist<br>
-<b>Step 7</b>　試用期3個月自動倒數，屆滿前7天系統自動提醒
+<b>Step 7</b>　試用期3個月自動倒數，屆滿前7天系統自動提醒<br>
+<div style="margin-top:8px;padding:8px 10px;background:#eff6ff;border-left:3px solid #3b82f6;border-radius:4px;font-size:12px;line-height:1.7"><b style="color:#1e40af">【新人線上報到 → 一鍵匯入】</b><br>新人可於員工APP登入頁「📋新人報到填寫資料」自行填寫個人資料（免帳號）。老闆於 👤員工資料 → <b>📋新人報到</b>（紅點顯示待匯入數）查看，點「✅匯入員工資料」會彈出設定表單：<b>到職日期</b>（自動預覽工號）、<b>職稱/門市/雇用類別下拉選擇</b> → 確認匯入。系統依到職日自動產生工號（同日多人序號自動遞增 01→02→03），並自動建立帳號與預設密碼。</div>
 </div>
 
 <div style="background:#375623;color:var(--white);padding:8px 14px;border-radius:6px;font-weight:700;font-size:14px;margin-bottom:8px">三、排班 SOP（每月作業）</div>
@@ -1063,6 +1064,7 @@ var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,rad
 var SYS_VERSION='3.3.0';
 var SYS_BUILD='20260505001';
 var SYS_CHANGELOG=[
+{ver:'3.2.0',build:'20260521001',date:'2026-05-21',changes:['修正新人報到匯入「同日多人工號重複」嚴重Bug（原誤用e.id判斷，序號永遠為01）','新人匯入工號改用genEmpNo()正確邏輯（掃描同日emp_no最大序號自動+1）','新人匯入介面改為彈出表單，門市/職稱/雇用類別改為下拉選單（避免手動輸入打錯字）','匯入表單即時預覽預計工號與預設密碼','修正匯入欄位對應(edu→education/bank_acct→account/emerg_→emg_)，匯入後員工資料完整顯示']},
 {ver:'3.1.0',build:'20260426003',date:'2026-04-26',changes:['📋 門市日報表（每日營業額/人數/工時/產能/成本%）','🤖 排班自動建議（依上月營業額建議人力）','⏱ 加班時數月報（統計+46h超標警示）','📝 員工滿意度調查（5項/匿名/結果圖表）','📚 教育訓練紀錄（項目/日期/完成狀態）','💹 人力成本預算（預算vs實際/使用率）','🏪 多店營運儀表板（跨店比較一覽）','管理端SOP更新至27章']},
 {ver:'3.0.0',build:'20260426002',date:'2026-04-26',changes:['🔐 權限管理（老闆全功能/店長5分頁+本店員工/薪資僅老闆可見）','📊 排班vs打卡差異報表（遲到/缺打卡/差異統計）','🔄 員工換班申請（APP提出→店長審核→自動交換班次）','💰 薪資條APP通知（一鍵推送→員工APP首頁顯示）','🏥 證照/體檢到期追蹤（過期/即將到期/正常分類）','管理端SOP更新至20章']},
 {ver:'2.10.0',build:'20260426001',date:'2026-04-26',changes:['員工APP補打卡申請（填寫日期/時間/類型/原因→店長審核）','員工APP首頁顯示今日交接事項（店長填寫的黃色卡片）','員工APP操作手冊新增補打卡申請+交接事項說明','已離職員工完全過濾通知提醒（8處）','管理端SOP同步更新']},
@@ -3087,22 +3089,51 @@ function closeNewHireList(){var ov=document.getElementById('ov-newhire');if(ov)o
 function importNewHire(idx){
   var a=newHireApply.filter(function(x){return x.status==='待匯入'})[idx];
   if(!a){alert('找不到資料');return}
-  var hireDate=prompt('到職日期（YYYY-MM-DD）：',new Date().toISOString().substring(0,10));
-  if(!hireDate)return;
-  var role=prompt('職稱：','兼職');if(!role)return;
-  var store=prompt('門市（總公司/交大店/台積電店）：','總公司');if(!store)return;
-  var empType=prompt('雇用類別（全職/兼職/實習生）：','兼職');if(!empType)return;
-  var hp=hireDate.split('-');var empNo=String(+hp[0]-1911)+hp[1]+hp[2];
-  var existing=staff.filter(function(e){return e.id&&e.id.startsWith(empNo)});
-  empNo+=String(existing.length+1).padStart(2,'0');
-  var newEmp={name:a.name,id_num:a.id_num,gender:a.gender,birth:a.birth,blood:a.blood,marital:a.marital,nationality:a.nationality,edu:a.edu,school:a.school,phone:a.phone,email:a.email,address:a.address,emerg_name:a.emerg_name,emerg_phone:a.emerg_phone,emerg_rel:a.emerg_rel,bank_name:a.bank_name,bank:a.bank,bank_code:a.bank_code,branch:a.branch,branch_code:a.branch_code,bank_acct:a.bank_acct,health_date:a.health_date||'',health_result:a.health_result||'',certs:a.certs||[],role:role,store:store,emp_type:empType,hire_date:hireDate,emp_no:empNo,salary:0,allowance:0,full_salary:0};
-  staff.push(Object.assign({id:'e'+Date.now()},newEmp));
+  var roles=['店長','儲備店長','副店長','儲備幹部','內場正職人員','外場正職人員','正職實習生','兼職','實習生'];
+  var stores=getStores();
+  var today=new Date().toISOString().substring(0,10);
+  var h='<div style="padding:20px">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h2 style="font-size:17px;color:#0f1b35">📥 匯入新人：'+a.name+'</h2><button onclick="closeImportForm()" style="padding:6px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer">✕</button></div>';
+  h+='<div style="font-size:12px;color:#888;margin-bottom:16px">設定職務資料，工號將依到職日自動產生（同日多人自動遞增序號）</div>';
+  h+='<div style="margin-bottom:12px"><span style="font-size:12px;font-weight:700;color:#555">到職日期 *</span><input type="date" id="nh-hire" value="'+today+'" onchange="updImportPreview()" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin-top:4px;box-sizing:border-box"></div>';
+  h+='<div style="margin-bottom:12px"><span style="font-size:12px;font-weight:700;color:#555">職稱 *</span><select id="nh-role" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin-top:4px;box-sizing:border-box">'+selOpts(roles,'兼職')+'</select></div>';
+  h+='<div style="margin-bottom:12px"><span style="font-size:12px;font-weight:700;color:#555">門市 *</span><select id="nh-store" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin-top:4px;box-sizing:border-box">'+selOpts(stores,stores[0]||'')+'</select></div>';
+  h+='<div style="margin-bottom:14px"><span style="font-size:12px;font-weight:700;color:#555">雇用類別 *</span><select id="nh-etype" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin-top:4px;box-sizing:border-box">'+selOpts(['全職','兼職','工讀','派遣','試用'],'兼職')+'</select></div>';
+  h+='<div id="nh-preview" style="font-size:12px;color:#0369a1;background:#dbeafe;padding:8px 12px;border-radius:8px;margin-bottom:14px"></div>';
+  h+='<div style="display:flex;gap:8px"><button onclick="doImportNewHire('+idx+')" style="flex:1;padding:12px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">✅ 確認匯入</button><button onclick="closeImportForm()" style="padding:12px 20px;background:#eee;border:none;border-radius:8px;cursor:pointer">取消</button></div>';
+  h+='</div>';
+  var ov=document.getElementById('ov-nhimport');
+  if(!ov){ov=document.createElement('div');ov.id='ov-nhimport';ov.className='ov';ov.onclick=function(ev){if(ev.target===ov)closeImportForm()};ov.innerHTML='<div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto"></div>';document.body.appendChild(ov)}
+  ov.querySelector('.modal').innerHTML=h;ov.classList.add('show');
+  updImportPreview();
+}
+function updImportPreview(){
+  var hd=document.getElementById('nh-hire');var pv=document.getElementById('nh-preview');
+  if(!hd||!pv)return;
+  if(hd.value){var no=genEmpNo(hd.value);pv.innerHTML='預計工號：<b style="font-family:monospace">'+no+'</b>　·　帳號＝工號　·　預設密碼＝<b style="font-family:monospace">'+no+'aa</b>'}
+  else{pv.textContent='請選擇到職日期'}
+}
+function closeImportForm(){var ov=document.getElementById('ov-nhimport');if(ov)ov.classList.remove('show')}
+function doImportNewHire(idx){
+  var a=newHireApply.filter(function(x){return x.status==='待匯入'})[idx];
+  if(!a){alert('找不到資料');return}
+  var hireDate=document.getElementById('nh-hire').value;
+  var role=document.getElementById('nh-role').value;
+  var store=document.getElementById('nh-store').value;
+  var empType=document.getElementById('nh-etype').value;
+  if(!hireDate){alert('請選擇到職日期');return}
+  var empNo=genEmpNo(hireDate);
+  if(!empNo){alert('工號產生失敗，請確認到職日期格式');return}
+  var newId='e'+Date.now();
+  var newEmp={name:a.name,id_num:a.id_num,gender:a.gender,birth:a.birth,blood_type:a.blood,marital:a.marital,nationality:a.nationality,education:a.edu,school:a.school,phone:a.phone,email:a.email,address:a.address,emg_contact:a.emerg_name,emg_phone:a.emerg_phone,emg_rel:a.emerg_rel,bank_name:a.bank_name,bank:a.bank,bank_code:a.bank_code,branch:a.branch,branch_code:a.branch_code,account:a.bank_acct,health_date:a.health_date||'',health_result:a.health_result||'',certs:a.certs||[],role:role,store:store,emp_type:empType,hire_date:hireDate,emp_no:empNo,salary:0,allowance:0,full_salary:0};
+  staff.push(Object.assign({id:newId},newEmp));
   var defaultPass=hashPass(empNo+'aa');
-  userAccounts.push({user:empNo.toLowerCase(),pass:defaultPass,role:'員工',empId:staff[staff.length-1].id});
+  userAccounts.push({user:empNo.toLowerCase(),pass:defaultPass,role:'員工',empId:newId});
   a.status='已匯入';a.importDate=new Date().toISOString();a.importedEmpNo=empNo;
   saveStaff();
   if(db){db.collection(fbCol('hrdata')).doc('accounts').set({userAccounts:userAccounts}).catch(function(){});db.collection(fbCol('hrdata')).doc('newHireApply').set({data:newHireApply}).catch(function(){})}
   logAudit('新增','匯入新人 '+a.name+' → '+empNo);
+  closeImportForm();
   alert('✅ 匯入成功！\n\n員工：'+a.name+'\n工號：'+empNo+'\n帳號：'+empNo+'\n預設密碼：'+empNo+'aa\n\n請通知員工使用APP登入');
   openNewHireList();
 }
