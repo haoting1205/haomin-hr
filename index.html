@@ -327,6 +327,10 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .sched-bar{position:sticky;top:calc(var(--bar-h) + var(--tab-h));z-index:150}
 .emp-toolbar{position:sticky;top:calc(var(--bar-h) + var(--tab-h));z-index:150;background:#eef2f7;padding:10px 0;margin:-2px 0 8px}
 .batch-toolbar{position:sticky;top:calc(var(--bar-h) + var(--tab-h));z-index:140}
+/* v3.7.0 凍結窗格：表頭日期列上下捲固定、左上員工表頭格左右捲固定（員工欄emp-cell已sticky left） */
+.wrap table thead th{position:sticky;top:0;z-index:25}
+.th-fix{position:sticky!important;left:0;top:0;z-index:36}
+.elt-wrap table thead th{position:sticky;top:0;z-index:25}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1069,6 +1073,7 @@ var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,rad
 var SYS_VERSION='3.3.0';
 var SYS_BUILD='20260505001';
 var SYS_CHANGELOG=[
+{ver:'3.7.0',build:'20260521006',date:'2026-05-21',changes:['排班表凍結窗格：上下捲動時日期表頭固定、左右捲動時員工名稱欄固定，行列標題隨時可對照','補齊thead表頭sticky定位（原缺top值導致表頭未固定）','員工資料表同步凍結表頭','關閉程式時自動記憶分頁/月份/門市，下次登入完整還原']},
 {ver:'3.6.0',build:'20260521005',date:'2026-05-21',changes:['排班表每格直接內嵌實際打卡時間（上/下班），免切換即可與排班對照比對','打卡時間自動標色：準時綠/遲到紅(顯示遲到分鐘)/未排班打卡藍','狀態記憶強化：改月份、改門市時即時記錄，下次登入自動回到上次的分頁/月份/門市']},
 {ver:'3.5.0',build:'20260521004',date:'2026-05-21',changes:['新增「🔧修復重複工號」按鈕（員工資料工具列）：一鍵掃描並重新編號既有重複工號，同步更新帳號與預設密碼','修正內容工具列固定定位（top改為頂列54+分頁列48=102px，解決被分頁列遮蓋問題）','排班/員工/批次工具列捲動時正確固定於分頁列下方']},
 {ver:'3.4.0',build:'20260521003',date:'2026-05-21',changes:['排班表新增「🕐打卡記錄表」按鈕：員工×日期格狀視圖，每格顯示實際上/下班打卡時間','打卡記錄表自動對照排班標色比對：正常(綠)/遲到(黃)/缺卡(紅)/未排班有打卡(藍)/請假(紫)','滑鼠移到格子顯示排班時間與遲到分鐘數','可直接從打卡記錄表跳轉遲到扣薪統計']},
@@ -2922,7 +2927,7 @@ function clearSchedCell(){
   }catch(e){_skipSchedSnapshot=false;alert('清除失敗：'+e.message)}
 }
 
-window.addEventListener('beforeunload',function(){try{save()}catch(e){}});
+window.addEventListener('beforeunload',function(){try{saveLastState();save()}catch(e){}});
 function autoGDBackup(){if(!isBoss()||!_gdAT)return;var l=localStorage.getItem('hm_lastGDB');var today=new Date().toISOString().substring(0,10);if(l&&l.substring(0,10)===today)return;doGDU()}
 
 // GDRIVE BACKUP
