@@ -1107,6 +1107,9 @@ var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,rad
 var SYS_VERSION='3.3.0';
 var SYS_BUILD='20260505001';
 var SYS_CHANGELOG=[
+{ver:'3.10.2',build:'20260521012',date:'2026-05-21',changes:['修正狀態記憶邏輯：登入時月份永遠顯示當下系統月份（避免被歷史lastState誤導到舊月）','保留還原：門市選擇/分頁位置（常用門市與分頁仍會記住）','使用者手動切月查看舊月仍可用，但下次登入仍回當月']},
+{ver:'3.10.1',build:'20260521011',date:'2026-05-21',changes:['修正狀態記憶根本問題：初始化期renderAll會用當月覆蓋lastState的歷史月份','加入_restoreDone守衛：restore完成前禁止寫入lastState，避免初始月份覆蓋使用者上次月份','restore完成後renderAll正常持續同步當前狀態，使用者在哪個月操作就自動記住']},
+{ver:'3.10.0',build:'20260521010',date:'2026-05-21',changes:['修正跨店打卡顯示錯誤：打卡記錄表/排班格內嵌打卡依「當前篩選門市」過濾，跨店打卡不會顯示在錯誤門市','強化狀態記憶可靠性：renderAll結尾持續同步當前狀態(月份/門市/分頁)，避免時序問題導致還原失敗','還原邏輯延遲500→1500ms讓Firebase初始化穩定後再執行','還原後強制再saveLastState一次確保完整同步','示範模式不參與狀態記憶寫入(避免污染正常使用者的記憶)']},
 {ver:'3.9.1',build:'20260521009',date:'2026-05-21',changes:['修正示範模式無法切回正常帳號的嚴重問題（applyRole誤用||isDemo永遠true）','從示範模式切回老闆/員工帳號時自動reload清除遮蔽資料污染','示範模式登出時自動reload，避免遮蔽資料殘留','applyRole在非示範角色時主動清除isDemo+banner+demo-mode類別']},
 {ver:'3.9.0',build:'20260521008',date:'2026-05-21',changes:['新增示範模式：guest/guest2026 帳號可瀏覽系統功能但不能修改','示範模式員工敏感資料自動遮蔽（電話/email/身分證/銀行/地址/緊急聯絡/薪資金額）','示範模式save()全域攔截+CSS隱藏敏感按鈕（新增/刪除/帳號管理/備份/Firebase/匯出入）','示範模式紅色頂部banner明顯標示+登入頁示範入口按鈕']},
 {ver:'3.8.0',build:'20260521007',date:'2026-05-21',changes:['修正新人排班顯示undefined/NaN問題（匯入時漏給預設班次時間）','匯入新人自動帶入門市開閉店時間為預設班次','新增自動修復：載入排班表時自動為缺班次的在職員工補上門市預設班次（修復既有新人）']},
@@ -1289,7 +1292,7 @@ document.getElementById('dl-resign').href='data:application/vnd.openxmlformats-o
 });
 function onYMChange(){curY=+document.getElementById('sy').value;curM=+document.getElementById('sm').value;saveLastState();if(db)setupRealtimeListeners();renderAll()}
 function saveLastState(){try{localStorage.setItem('hm_lastState',JSON.stringify({tab:localStorage.getItem('hm_lastTab')||'sched',curY:curY,curM:curM,store:schedStore}))}catch(e){}}
-function renderAll(){refreshSchedStore();renderSched();try{renderPay()}catch(e){console.log('renderPay err:'+e.message)}renderEmpGrid()}
+function renderAll(){refreshSchedStore();renderSched();try{renderPay()}catch(e){console.log('renderPay err:'+e.message)}renderEmpGrid();try{if(curUser&&!isDemo&&_restoreDone)saveLastState()}catch(e){}}
 function refreshSchedStore(){var sel=document.getElementById('sched-store');if(!sel)return;var stores=getStores();var old=sel.value||schedStore;sel.innerHTML='';stores.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;if(s===old)o.selected=true;sel.appendChild(o)});if(!old||stores.indexOf(old)<0){schedStore=stores[0]||'';sel.value=schedStore}else{schedStore=old}var shDisp=document.getElementById('sched-store-hours');if(shDisp){var sh=storeHours[schedStore]||{oh:9,om:0,ch:21,cm:0};shDisp.textContent=('0'+sh.oh).slice(-2)+':'+('0'+(sh.om||0)).slice(-2)+'-'+('0'+sh.ch).slice(-2)+':'+('0'+(sh.cm||0)).slice(-2)}}
 function dk(d){return(curY+1911)+'-'+pad(curM)+'-'+pad(d)}
 function pad(n){return String(n).padStart(2,'0')}
@@ -1326,7 +1329,11 @@ function switchTab(n){localStorage.setItem('hm_lastTab',n);localStorage.setItem(
 function actPunchCell(eid,day,sc){
   try{
     var ds=(curY+1911)+'-'+pad(curM)+'-'+pad(day);
-    var ps=punchRecords.filter(function(p){return p.eid===eid&&p.date===ds});
+    var ps=punchRecords.filter(function(p){
+      if(p.eid!==eid||p.date!==ds)return false;
+      if(schedStore&&schedStore!=='全部'&&p.store&&p.store!==schedStore)return false;
+      return true;
+    });
     if(ps.length===0)return'';
     var pin=ps.find(function(p){return p.type==='上班'});
     var pout=ps.find(function(p){return p.type==='下班'});
@@ -1588,9 +1595,10 @@ function getCertAlertHtml(){var alerts=getCertAlerts();if(!alerts.length)return'
 
 // ===== LOGIN / AUTH =====
 var isDemo=false;
+var _restoreDone=false;
 function doLogin(){var u=document.getElementById('login-user').value.trim();var p=document.getElementById('login-pass').value;if(u.toLowerCase()==='guest'&&p==='guest2026'){isDemo=true;curUser={user:'guest',role:'示範',empId:''};document.getElementById('login-screen').style.display='none';applyRole('示範','');logAudit('登入','示範帳號 guest 登入');return}var acct=userAccounts.find(function(a){return a.user.toLowerCase()===u.toLowerCase()&&verifyPass(p,a.pass)});if(acct&&acct.role==='已停用'){var err=document.getElementById('login-err');err.textContent='此帳號已停用（員工已離職）';err.style.display='block';return}if(!acct){var err=document.getElementById('login-err');err.textContent='帳號或密碼錯誤';err.style.display='block';return}curUser=acct;if(document.getElementById('login-remember').checked){localStorage.setItem('hm_session',JSON.stringify({user:acct.user,pass:p}))}if(isDemo){localStorage.setItem('hm_session',JSON.stringify({user:acct.user,pass:p}));location.reload();return}document.getElementById('login-screen').style.display='none';applyRole(acct.role,acct.empId);logAudit('登入','帳號 '+u+' ('+acct.role+')');if(verifyPass(acct.user+'aa',acct.pass)){setTimeout(function(){if(confirm('⚠ 您目前使用預設密碼\n\n為保護帳號安全，建議立即修改密碼。\n\n按「確定」立即修改\n按「取消」稍後再改')){changeMyPass()}},1000)}}
 function doLogout(){curUser=null;localStorage.removeItem('hm_session');if(isDemo){location.reload();return}document.getElementById('login-screen').style.display='flex';document.getElementById('login-user').value='';document.getElementById('login-pass').value='';document.getElementById('login-err').style.display='none'}
-function applyRole(role,empId){if(!curUser)curUser={};curUser.role=role;curUser.empId=empId;localStorage.setItem('hm_role',role);if(role==='示範'){isDemo=true;document.body.classList.add('demo-mode');var db2=document.getElementById('demo-banner');if(db2)db2.style.display='block';setTimeout(function(){try{maskStaffForDemo();renderAll()}catch(e){}},1500)}else{isDemo=false;document.body.classList.remove('demo-mode');var db3=document.getElementById('demo-banner');if(db3)db3.style.display='none'}setTimeout(loadNewHireApply,1000);setTimeout(function(){try{var _st=JSON.parse(localStorage.getItem('hm_lastState')||'null');if(_st){if(_st.curY)curY=_st.curY;if(_st.curM)curM=_st.curM;var _sy=document.getElementById('sy');if(_sy)_sy.value=curY;var _sm=document.getElementById('sm');if(_sm)_sm.value=curM;if(_st.store){schedStore=_st.store;var ss=document.getElementById('sched-store');if(ss)ss.value=schedStore}if(_st.tab)switchTab(_st.tab);renderAll()}}catch(e){}},500);
+function applyRole(role,empId){if(!curUser)curUser={};curUser.role=role;curUser.empId=empId;localStorage.setItem('hm_role',role);if(role==='示範'){isDemo=true;document.body.classList.add('demo-mode');var db2=document.getElementById('demo-banner');if(db2)db2.style.display='block';setTimeout(function(){try{maskStaffForDemo();renderAll()}catch(e){}},1500)}else{isDemo=false;document.body.classList.remove('demo-mode');var db3=document.getElementById('demo-banner');if(db3)db3.style.display='none'}setTimeout(loadNewHireApply,1000);setTimeout(function(){try{var _st=JSON.parse(localStorage.getItem('hm_lastState')||'null');curY=new Date().getFullYear()-1911;curM=new Date().getMonth()+1;var _sy=document.getElementById('sy');if(_sy)_sy.value=curY;var _sm=document.getElementById('sm');if(_sm)_sm.value=curM;if(_st){if(_st.store){schedStore=_st.store;var ss=document.getElementById('sched-store');if(ss)ss.value=schedStore}if(_st.tab)switchTab(_st.tab)}renderAll();_restoreDone=true;saveLastState()}catch(e){_restoreDone=true}},1500);
 var tabs=document.querySelectorAll('.tab');
 var bossTabs=['排班表','請假管理','出勤報表','薪資計算','員工資料','考績表','各職級薪資','勞健退設定','操作紀錄','人資表單下載'];
 var mgrTabs=['排班表','請假管理','出勤報表','員工資料','考績表'];
