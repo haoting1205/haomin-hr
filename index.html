@@ -1111,11 +1111,12 @@ var leaveRecords=[],historyLog={},vacQuota={},payHistory={},auditLog=[],userAcco
 var attendRule={lateMin:30,deductLeaves:['事假']};var restOTManual={};
 var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:8,om:0,ch:17,cm:0,lat:24.76619,lng:121.00812,radius:300}};
 
-var SYS_VERSION='3.33.0';
-var SYS_BUILD='20260610003';
+var SYS_VERSION='3.34.0';
+var SYS_BUILD='20260625001';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'3.34.0',build:'20260625001',date:'2026-06-25',changes:['【修正·匯入新人「找不到資料」】匯入卡片按鈕原本傳「待匯入過濾清單」的索引，連續匯入或多分頁/雲端同步時清單變動→索引對不上→誤報找不到資料。改用 newHireApply 完整陣列的穩定索引＋狀態檢查，徹底解決','【修正·工號重複】連續匯入同到職日新人時，因雲端onSnapshot把staff換成尚未含前一筆的舊資料(Firebase競態)，導致序號沒遞增、工號重複(如張芷瑄/徐葦庭都115052101)。genEmpNo新增第二道防線：同時掃描已匯入名單的工號，即使staff暫時不同步也不會產生重複','【提醒】既有重複工號(張芷瑄/徐葦庭)需手動修正其一為115052102，並確認其登入帳號未被覆蓋']},
 {ver:'3.33.0',build:'20260610003',date:'2026-06-10',changes:['【修正·投保薪資自動修正】非兼職員工若投保薪資欄被設成低於法定最低(29,500)的無效值(如1500/15000)，系統自動忽略、改用月薪總額(全薪)核算級距，不必再手動清空欄位。原張芷瑄/范袁昊/徐葦庭投保薪資被設1500→卡在最低級距(勞保738/健保458)，現自動依全薪約40,000→級距40,100(勞保約1,003/健保約622)。費率2026法定值不變(勞保12.5%×20%、健保5.17%×30%、勞退雇主6%不扣員工、職災雇主全額負擔)','【UI】排班表員工欄字體與留白再縮小(font 14→12、留白 7/10→4/8)，配合v3.32.0頭像縮小']},
 {ver:'3.32.0',build:'20260610002',date:'2026-06-10',changes:['【修正·清空班別持久化】排班格點「空白」清除班別，改為寫入空班(blank)而非刪除欄位——原本用刪除+merge儲存，雲端不會移除該欄位，導致重開又出現(如林筱涵跨店支援未上班日)。現在清空會持久保存','【UI】縮小員工彩色頭像圓圈(薪資表28→22px、員工清單34→26px)']},
 {ver:'3.31.0',build:'20260610001',date:'2026-06-10',changes:['【修正·投保薪資(依勞基法/勞健保規定)】投保薪資欄留空時，自動查級距改以「月薪總額(本薪+伙食+全勤+職務+夜班等經常性給與)」為準，而非只用本薪(原本只用本薪屬低估)。115年度分級表(勞保第1級29500/上限45800、健保5.17%、勞保12.5%×20%)經查證正確','【新增·高薪低報警示】當員工投保薪資(手動設定)低於其月薪總額對應級距時，薪資表勞保欄顯示「⚠低報」提醒(高薪低報違反勞保條例第72條，可罰短報保費4倍)','【說明】張芷瑄/范袁昊/徐葦庭顯示738/458是因投保薪資被設為15000(低於最低29500→墊高到29500)。如要依實際薪資投保，請清空投保薪資欄(自動帶全薪級距)或填正確金額']},
@@ -1283,7 +1284,7 @@ var SYS_CHANGELOG=[
 ];
 
 
-function genEmpNo(hireDate,excludeId){if(!hireDate)return'';var parts=hireDate.split('-');if(parts.length!==3)return'';var rocY=+parts[0]-1911;var m=parts[1];var d=parts[2];var dateCode=String(rocY)+m+d;var seq=1;staff.forEach(function(e){if(excludeId&&e.id===excludeId)return;if(e.emp_no&&e.emp_no.substring(0,7)===dateCode){var s=parseInt(e.emp_no.substring(7));if(s>=seq)seq=s+1}});var candidate,taken;do{candidate=dateCode+String(seq).padStart(2,'0');taken=staff.some(function(e){return(!excludeId||e.id!==excludeId)&&e.emp_no===candidate})||userAccounts.some(function(a){return a.user===candidate.toLowerCase()});if(taken)seq++}while(taken);return candidate}
+function genEmpNo(hireDate,excludeId){if(!hireDate)return'';var parts=hireDate.split('-');if(parts.length!==3)return'';var rocY=+parts[0]-1911;var m=parts[1];var d=parts[2];var dateCode=String(rocY)+m+d;var seq=1;staff.forEach(function(e){if(excludeId&&e.id===excludeId)return;if(e.emp_no&&e.emp_no.substring(0,7)===dateCode){var s=parseInt(e.emp_no.substring(7));if(s>=seq)seq=s+1}});(typeof newHireApply!=='undefined'&&newHireApply||[]).forEach(function(x){if(x.importedEmpNo&&(''+x.importedEmpNo).substring(0,7)===dateCode){var s2=parseInt((''+x.importedEmpNo).substring(7));if(s2>=seq)seq=s2+1}});var candidate,taken;do{candidate=dateCode+String(seq).padStart(2,'0');taken=staff.some(function(e){return(!excludeId||e.id!==excludeId)&&e.emp_no===candidate})||userAccounts.some(function(a){return a.user===candidate.toLowerCase()})||(typeof newHireApply!=='undefined'&&newHireApply||[]).some(function(x){return x.importedEmpNo===candidate});if(taken)seq++}while(taken);return candidate}
 function fixDuplicateEmpNo(){
   if(!isBoss()){alert('僅限老闆');return}
   var seen={};
@@ -3345,8 +3346,8 @@ function openNewHireList(){
     fields.forEach(function(f){if(f[1])h+="<div><span style='color:#888'>"+f[0]+"：</span><b>"+f[1]+"</b></div>"});
     h+='</div>';
     h+='<div style="display:flex;gap:8px;margin-top:10px">';
-    h+='<button onclick="importNewHire('+i+')" style="flex:1;padding:10px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✅ 匯入員工資料</button>';
-    h+='<button onclick="rejectNewHire('+i+')" style="padding:10px 16px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;font-size:13px;cursor:pointer">✕</button>';
+    h+='<button onclick="importNewHire('+newHireApply.indexOf(a)+')" style="flex:1;padding:10px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✅ 匯入員工資料</button>';
+    h+='<button onclick="rejectNewHire('+newHireApply.indexOf(a)+')" style="padding:10px 16px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;font-size:13px;cursor:pointer">✕</button>';
     h+='</div></div>';
   });
   if(done.length>0){
@@ -3360,8 +3361,8 @@ function openNewHireList(){
 }
 function closeNewHireList(){var ov=document.getElementById('ov-newhire');if(ov)ov.classList.remove('show')}
 function importNewHire(idx){
-  var a=newHireApply.filter(function(x){return x.status==='待匯入'})[idx];
-  if(!a){alert('找不到資料');return}
+  var a=newHireApply[idx];
+  if(!a||a.status!=='待匯入'){alert('找不到資料');return}
   var roles=['店長','儲備店長','副店長','儲備幹部','內場正職人員','外場正職人員','正職實習生','兼職','實習生'];
   var stores=getStores();
   var today=new Date().toISOString().substring(0,10);
@@ -3388,8 +3389,8 @@ function updImportPreview(){
 }
 function closeImportForm(){var ov=document.getElementById('ov-nhimport');if(ov)ov.classList.remove('show')}
 function doImportNewHire(idx){
-  var a=newHireApply.filter(function(x){return x.status==='待匯入'})[idx];
-  if(!a){alert('找不到資料');return}
+  var a=newHireApply[idx];
+  if(!a||a.status!=='待匯入'){alert('找不到資料');return}
   var hireDate=document.getElementById('nh-hire').value;
   var role=document.getElementById('nh-role').value;
   var store=document.getElementById('nh-store').value;
@@ -3411,8 +3412,8 @@ function doImportNewHire(idx){
   openNewHireList();
 }
 function rejectNewHire(idx){
-  var a=newHireApply.filter(function(x){return x.status==='待匯入'})[idx];
-  if(!a)return;
+  var a=newHireApply[idx];
+  if(!a||a.status!=='待匯入')return;
   if(!confirm('確定刪除 '+a.name+' 的報到資料？'))return;
   a.status='已刪除';
   if(db)db.collection(fbCol('hrdata')).doc('newHireApply').set({data:newHireApply}).catch(function(){});
