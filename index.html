@@ -1111,11 +1111,12 @@ var leaveRecords=[],historyLog={},vacQuota={},payHistory={},auditLog=[],userAcco
 var attendRule={lateMin:30,deductLeaves:['事假']};var restOTManual={};
 var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:8,om:0,ch:17,cm:0,lat:24.76619,lng:121.00812,radius:300}};
 
-var SYS_VERSION='3.34.0';
-var SYS_BUILD='20260625001';
+var SYS_VERSION='3.35.0';
+var SYS_BUILD='20260625002';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'3.35.0',build:'20260625002',date:'2026-06-25',changes:['【修正·匯入「找不到資料」徹底解決】按「確認匯入」仍報找不到資料：根因是確認時用索引去 newHireApply 重撈，但清單可能已被雲端onSnapshot換成新陣列→索引/參照失效。改為：點卡片時就把該新人整筆資料記住(_curImportRec)，按確認直接用它建檔，完全不依賴會變動的索引；狀態回寫時再用身分證號在當前清單定位，雲端換陣列也不影響','【相容】保留 v3.34.0 的完整索引與genEmpNo工號重複第二道防線']},
 {ver:'3.34.0',build:'20260625001',date:'2026-06-25',changes:['【修正·匯入新人「找不到資料」】匯入卡片按鈕原本傳「待匯入過濾清單」的索引，連續匯入或多分頁/雲端同步時清單變動→索引對不上→誤報找不到資料。改用 newHireApply 完整陣列的穩定索引＋狀態檢查，徹底解決','【修正·工號重複】連續匯入同到職日新人時，因雲端onSnapshot把staff換成尚未含前一筆的舊資料(Firebase競態)，導致序號沒遞增、工號重複(如張芷瑄/徐葦庭都115052101)。genEmpNo新增第二道防線：同時掃描已匯入名單的工號，即使staff暫時不同步也不會產生重複','【提醒】既有重複工號(張芷瑄/徐葦庭)需手動修正其一為115052102，並確認其登入帳號未被覆蓋']},
 {ver:'3.33.0',build:'20260610003',date:'2026-06-10',changes:['【修正·投保薪資自動修正】非兼職員工若投保薪資欄被設成低於法定最低(29,500)的無效值(如1500/15000)，系統自動忽略、改用月薪總額(全薪)核算級距，不必再手動清空欄位。原張芷瑄/范袁昊/徐葦庭投保薪資被設1500→卡在最低級距(勞保738/健保458)，現自動依全薪約40,000→級距40,100(勞保約1,003/健保約622)。費率2026法定值不變(勞保12.5%×20%、健保5.17%×30%、勞退雇主6%不扣員工、職災雇主全額負擔)','【UI】排班表員工欄字體與留白再縮小(font 14→12、留白 7/10→4/8)，配合v3.32.0頭像縮小']},
 {ver:'3.32.0',build:'20260610002',date:'2026-06-10',changes:['【修正·清空班別持久化】排班格點「空白」清除班別，改為寫入空班(blank)而非刪除欄位——原本用刪除+merge儲存，雲端不會移除該欄位，導致重開又出現(如林筱涵跨店支援未上班日)。現在清空會持久保存','【UI】縮小員工彩色頭像圓圈(薪資表28→22px、員工清單34→26px)']},
@@ -3360,9 +3361,11 @@ function openNewHireList(){
   ov.querySelector('.modal').innerHTML=h;ov.classList.add('show');
 }
 function closeNewHireList(){var ov=document.getElementById('ov-newhire');if(ov)ov.classList.remove('show')}
+var _curImportRec=null;
 function importNewHire(idx){
-  var a=newHireApply[idx];
+  var a=(idx!=null?newHireApply[idx]:null)||_curImportRec;
   if(!a||a.status!=='待匯入'){alert('找不到資料');return}
+  _curImportRec=a;
   var roles=['店長','儲備店長','副店長','儲備幹部','內場正職人員','外場正職人員','正職實習生','兼職','實習生'];
   var stores=getStores();
   var today=new Date().toISOString().substring(0,10);
@@ -3374,7 +3377,7 @@ function importNewHire(idx){
   h+='<div style="margin-bottom:12px"><span style="font-size:12px;font-weight:700;color:#555">門市 *</span><select id="nh-store" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin-top:4px;box-sizing:border-box">'+selOpts(stores,stores[0]||'')+'</select></div>';
   h+='<div style="margin-bottom:14px"><span style="font-size:12px;font-weight:700;color:#555">雇用類別 *</span><select id="nh-etype" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin-top:4px;box-sizing:border-box">'+selOpts(['全職','兼職','工讀','派遣','試用'],'兼職')+'</select></div>';
   h+='<div id="nh-preview" style="font-size:12px;color:#0369a1;background:#dbeafe;padding:8px 12px;border-radius:8px;margin-bottom:14px"></div>';
-  h+='<div style="display:flex;gap:8px"><button onclick="doImportNewHire('+idx+')" style="flex:1;padding:12px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">✅ 確認匯入</button><button onclick="closeImportForm()" style="padding:12px 20px;background:#eee;border:none;border-radius:8px;cursor:pointer">取消</button></div>';
+  h+='<div style="display:flex;gap:8px"><button onclick="doImportNewHire()" style="flex:1;padding:12px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">✅ 確認匯入</button><button onclick="closeImportForm()" style="padding:12px 20px;background:#eee;border:none;border-radius:8px;cursor:pointer">取消</button></div>';
   h+='</div>';
   var ov=document.getElementById('ov-nhimport');
   if(!ov){ov=document.createElement('div');ov.id='ov-nhimport';ov.className='ov';ov.onclick=function(ev){if(ev.target===ov)closeImportForm()};ov.innerHTML='<div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto"></div>';document.body.appendChild(ov)}
@@ -3388,9 +3391,9 @@ function updImportPreview(){
   else{pv.textContent='請選擇到職日期'}
 }
 function closeImportForm(){var ov=document.getElementById('ov-nhimport');if(ov)ov.classList.remove('show')}
-function doImportNewHire(idx){
-  var a=newHireApply[idx];
-  if(!a||a.status!=='待匯入'){alert('找不到資料');return}
+function doImportNewHire(){
+  var a=_curImportRec;
+  if(!a){alert('找不到資料，請關閉視窗重新點選該新人');return}
   var hireDate=document.getElementById('nh-hire').value;
   var role=document.getElementById('nh-role').value;
   var store=document.getElementById('nh-store').value;
@@ -3403,7 +3406,7 @@ function doImportNewHire(idx){
   var newEmp={name:a.name,id_num:a.id_num,gender:a.gender,birth:a.birth,blood_type:a.blood,marital:a.marital,nationality:a.nationality,education:a.edu,school:a.school,phone:a.phone,email:a.email,address:a.address,emg_contact:a.emerg_name,emg_phone:a.emerg_phone,emg_rel:a.emerg_rel,bank_name:a.bank_name,bank:a.bank,bank_code:a.bank_code,branch:a.branch,branch_code:a.branch_code,account:a.bank_acct,health_date:a.health_date||'',health_result:a.health_result||'',certs:a.certs||[],role:role,store:store,emp_type:empType,hire_date:hireDate,emp_no:empNo,salary:0,allowance:0,full_salary:0,sh:(_sh.oh!==undefined?_sh.oh:9),sm:_sh.om||0,eh:(_sh.ch!==undefined?_sh.ch:17),em:_sh.cm||0};
   staff.push(Object.assign({id:newId},newEmp));
   var defaultPass=hashPass(empNo+'aa');var _unI=empNo.toLowerCase();var _exI=userAccounts.find(function(a){return a.user===_unI});if(_exI){_exI.empId=newId;_exI.pass=defaultPass;if(_exI.role==='已停用')_exI.role='員工'}else{userAccounts.push({user:_unI,pass:defaultPass,role:'員工',empId:newId});}
-  a.status='已匯入';a.importDate=new Date().toISOString();a.importedEmpNo=empNo;
+  var _rec=newHireApply.filter(function(x){return x.status==='待匯入'&&((x.id_num&&x.id_num===a.id_num)||x===a)})[0]||a;_rec.status='已匯入';_rec.importDate=new Date().toISOString();_rec.importedEmpNo=empNo;_curImportRec=null;
   saveStaff();
   if(db){db.collection(fbCol('hrdata')).doc('accounts').set({userAccounts:userAccounts}).catch(function(){});db.collection(fbCol('hrdata')).doc('newHireApply').set({data:newHireApply}).catch(function(){})}
   logAudit('新增','匯入新人 '+a.name+' → '+empNo);
