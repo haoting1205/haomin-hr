@@ -69,7 +69,7 @@ body{font-family:Noto Sans TC,sans-serif;background:#eef2f7;color:var(--gray6);f
 .tab:hover{color:var(--white)}
 .tab.active{color:var(--gold2);border-bottom-color:var(--gold);background:rgba(212,168,67,.08)}
 .tab-icon{font-size:14px}
-.panel{display:none}#panel-pay{overflow-x:auto;width:100%;max-width:100%;box-sizing:border-box;-webkit-overflow-scrolling:touch}.panel.active{display:block}
+.panel{display:none}.panel.active{display:block}
 .sched-bar{background:var(--navy2);border-bottom:1px solid var(--navy3);padding:6px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .wrap{overflow:auto;padding:10px 14px;max-height:calc(100vh - 200px)}
 .payroll-wrap thead th,.perf-wrap thead th{position:sticky;top:0;z-index:10;background:var(--white)}
@@ -1120,11 +1120,12 @@ var leaveRecords=[],historyLog={},vacQuota={},payHistory={},auditLog=[],userAcco
 var attendRule={lateMin:30,deductLeaves:['事假']};var restOTManual={};
 var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:8,om:0,ch:17,cm:0,lat:24.76619,lng:121.00812,radius:300}};
 
-var SYS_VERSION='3.63.0';
-var SYS_BUILD='20260710003';
+var SYS_VERSION='3.64.0';
+var SYS_BUILD='20260710004';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'3.64.0',build:'20260710004',date:'2026-07-10',changes:['【根本修正·薪資表雙層捲動】根因:薪資表結構為 panel-pay>payroll-wrap>table,payroll-wrap 原本已是捲動容器(內層),v3.58誤在外層 panel-pay 再加橫向捲動,兩層疊加造成內外都需移動。本版移除多餘的外層捲動,只保留原有內層(payroll-wrap)單層捲動,表格橫向一次到底,員工欄固定不動']},
 {ver:'3.63.0',build:'20260710003',date:'2026-07-10',changes:['【根本修正·工時零頭透明化】兼職時薪x工時,若排班含零星分鐘會產生薪資零頭(如陳秀滿72h含2分鐘→薪資多7元,計算正確但零頭隱形)。根因:工時原僅顯示1位小數,零頭看不見無法核對。修正:薪資明細員工欄工時改精確時分顯示(如72h2m),任何零頭一目了然可追溯至排班','【根本修正·工時浮點防護】總工時累加改加分鐘級四捨五入防護,消除浮點累加誤差,確保薪資不因浮點運算產生非預期零頭。此防護套用於所有依總工時計算的薪資項目']},
 {ver:'3.62.0',build:'20260710002',date:'2026-07-10',changes:['【新增·薪資核對鎖定】薪資明細每位員工可勾選「核對」,勾選後該員工整列薪資欄位鎖定不得修改(灰底),避免核對後誤改;取消勾選即解鎖','【新增·個別拋轉勾選】每位員工可勾選「拋轉」(預設勾選),取消勾選者僅在系統記錄薪資、不納入拋轉財會的人事成本彙總,供只記錄不入帳的員工使用','【優化·員工欄顯示出勤】薪資明細員工欄(固定欄)直接顯示當月上班天數與總工時,免橫向捲動即可檢視']},
 {ver:'3.61.0',build:'20260710001',date:'2026-07-10',changes:['【修正·健保加保日未生效】健保費計算原未判斷健保加保日,導致健保加保日在當月之後(如7/1加保)當月仍被扣健保。修正:依健保加保日判定,加保月(含)起才計收健保,之前月份不扣(健保按月計收)。勞保原已依加保日按日處理不受影響','【新增·支援時薪顯示時數】排班表跨店支援格除時間、金額外,加註時數(如02:30-06:30 4h),與一般班次一致','【UI修正·薪資表雙層捲動】限制薪資表容器寬度,消除內外雙層橫向捲軸,只保留表格本身單層捲動']},
