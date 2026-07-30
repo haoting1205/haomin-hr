@@ -1120,11 +1120,12 @@ var leaveRecords=[],historyLog={},vacQuota={},payHistory={},auditLog=[],userAcco
 var attendRule={lateMin:30,deductLeaves:['事假'],unpaidMode:'sched'};var restOTManual={};
 var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:8,om:0,ch:17,cm:0,lat:24.76619,lng:121.00812,radius:1000}};
 
-var SYS_VERSION='3.88.0';
+var SYS_VERSION='3.89.0';
 var SYS_BUILD='20260712014';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'3.89.0',build:'20260730001',date:'2026-07-30',changes:['【新增·OneDrive 資料夾備份】原本的雲端備份走 Google Drive，但容量已滿，自 2026-07-26 起備份靜默失敗（錯誤只印在 console，畫面沒有任何提示）。新增資料夾備份：用 File System Access API 取得 OneDrive 資料夾控制權，檔案寫進去即自動同步上雲，不需要 Azure 應用註冊、也不佔用瀏覽器儲存配額','【備份管理中心改版】狀態卡由 2 格改為 3 格（本機下載／OneDrive 資料夾／Firebase 雲端），新增 OneDrive 專區可設定資料夾與立即備份；未設定時明確警示 Google Drive 已失效','【自動備份】每 8 小時的自動備份改為優先寫入資料夾，Google Drive 與本機下載維持原行為作為備援','⚠ 瀏覽器安全機制：每次重開分頁後首次寫入需按一下確認，同一分頁內後續自動備份不再詢問。僅支援 Chrome / Edge']},
 {ver:'3.88.0',build:'20260727001',date:'2026-07-27',changes:['【資安·session 不再儲存明文密碼】原本勾選「記住我」會把明文密碼寫進 localStorage(hm_session)，裝置遺失或被他人操作即等同帳號洩漏。改為儲存已雜湊的值，還原時比對雜湊；密碼一經變更雜湊不符即自動失效需重新登入。⚠本次更新後既有的記住我 session 會失效一次，需重新登入','【資安·原始碼不再出現出廠預設密碼】userAccounts 的 boss 種子由明文 boss1234 改存預先計算的雜湊值，登入行為完全不變（verifyPass 相容）。既有帳號不受影響','【一致性】改密碼後同步更新 session 內的雜湊值，避免改完密碼下次自動登入失敗']},
 {ver:'3.87.0',build:'20260726001',date:'2026-07-26',changes:['【根本修正·儲存開閉店時間會清空GPS座標與打卡圍籬】saveStoreHours 原以整包覆寫方式寫入門市設定,只保留開閉店時間,導致 lat/lng/radius 每次儲存後全部消失;員工APP的打卡圍籬判定因此失去依據,是員工時常無法打卡的根本原因之一。修正:改為合併寫入(保留座標)、缺漏欄位以內建基準自動補回,並於Firebase載入時自我修復曾被清空的資料','【新增·打卡GPS圍籬半徑可於管理端設定】開閉店時間設定新增「打卡GPS圍籬半徑(公尺)」,每間門市可獨立設定並同步到員工APP(單一真實來源)。台積電店基準調整為1000m(3C管制區定位困難),總公司/交大店200m','【修正·台積電店圍籬基準300m→1000m】管制區域GPS定位困難,依實際作業調整,避免員工在店內卻被判定超出範圍']},
 {ver:'3.86.0',build:'20260712013',date:'2026-07-12',changes:['【新增·不予計薪雙模式可切換】全勤規則設定新增「月薪制不予計薪核對方式」:①班表時數核對(排班不足8h即扣,需勞動契約約定)②打卡核對(僅員工遲到早退未提供勞務才扣,符合勞基法)。老闆可依實際勞動契約選擇;預設班表核對。兩模式均以月薪÷240、無條件捨去計算,兼職不適用']},
@@ -2227,9 +2228,24 @@ function checkSchedLockBeforeEdit(){if(!canEditSched()){alert('⚠ 班表已覆�
 
 function openBackupManager(){var tb=document.getElementById('history-toolbar');if(tb)tb.style.display='none';var lastLocal=localStorage.getItem('hm_last_backup')||'從未備份';var lastCloud=localStorage.getItem('hm_last_cloud_backup')||'從未備份';var interval=+localStorage.getItem('hm_backup_interval')||0;var autoTarget=localStorage.getItem('hm_backup_target')||'local';var h='<div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:14px">💾 備份管理中心</div>';
 
-h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">';
-h+='<div style="background:linear-gradient(135deg,#0f1b35,#1a2d52);border-radius:12px;padding:14px;color:#fff;text-align:center"><div style="font-size:10px;color:#b0b8d0">本機備份</div><div style="font-size:11px;color:#93c5fd;margin-top:4px">'+lastLocal+'</div></div>';
-h+='<div style="background:linear-gradient(135deg,#92400e,#b45309);border-radius:12px;padding:14px;color:#fff;text-align:center"><div style="font-size:10px;color:#fde68a">雲端備份</div><div style="font-size:11px;color:#fef3c7;margin-top:4px">'+lastCloud+'</div></div>';
+var obName=localStorage.getItem('hm_hrob_name')||'';
+var obLast=localStorage.getItem('hm_hrob_last');
+h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">';
+h+='<div style="background:linear-gradient(135deg,#0f1b35,#1a2d52);border-radius:12px;padding:14px;color:#fff;text-align:center"><div style="font-size:10px;color:#b0b8d0">本機下載</div><div style="font-size:11px;color:#93c5fd;margin-top:4px">'+lastLocal+'</div></div>';
+h+='<div style="background:linear-gradient(135deg,#0f766e,#0d9488);border-radius:12px;padding:14px;color:#fff;text-align:center"><div style="font-size:10px;color:#99f6e4">☁️ OneDrive 資料夾</div><div style="font-size:11px;color:#ccfbf1;margin-top:4px">'+(obLast?new Date(obLast).toLocaleString('zh-TW'):(obName?'尚未備份':'未設定'))+'</div></div>';
+h+='<div style="background:linear-gradient(135deg,#92400e,#b45309);border-radius:12px;padding:14px;color:#fff;text-align:center"><div style="font-size:10px;color:#fde68a">Firebase 雲端</div><div style="font-size:11px;color:#fef3c7;margin-top:4px">'+lastCloud+'</div></div>';
+h+='</div>';
+/* ── OneDrive 資料夾備份（主力）── */
+h+='<div style="background:#f0fdfa;border:1.5px solid #5eead4;border-radius:10px;padding:12px 14px;margin-bottom:16px">';
+h+='<div style="font-size:13px;font-weight:800;color:#0f766e;margin-bottom:6px">☁️ OneDrive 資料夾備份（建議主力）</div>';
+h+='<div style="font-size:12px;color:#134e4a;line-height:1.8;margin-bottom:10px">'
+ + (obName? '目前資料夾：<b>'+obName+'</b>' : '<b style="color:#b45309">⚠ 尚未設定</b>　Google Drive 容量已滿，原本的雲端備份自 2026-07-26 起已失效，請改用此方式')
+ + '<br>檔案寫進 OneDrive 資料夾後會自動同步上雲，不佔用瀏覽器儲存空間。</div>';
+h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+h+='<button class="btn" style="background:#0f766e;color:#fff;border-color:#0f766e" onclick="obPickDir()">📁 '+(obName?'變更':'設定')+'備份資料夾</button>';
+h+='<button class="btn" onclick="obBackupNowHR()">📸 立即備份到資料夾</button>';
+h+='</div>';
+h+='<div style="font-size:11px;color:#5f8a86;margin-top:8px">每 8 小時自動寫入一份。瀏覽器安全機制：每次重開分頁後首次寫入需按一下確認。</div>';
 h+='</div>';
 
 h+='<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">📥 手動備份</div>';
@@ -2486,8 +2502,82 @@ function verifyPass(plain,hashed){if(!hashed||hashed.indexOf('hm$')!==0)return p
 function migratePasswords(){var migrated=0;userAccounts.forEach(function(a){if(a.pass&&a.pass.indexOf('hm$')!==0){a.pass=hashPass(a.pass);migrated++}});if(migrated>0){save();console.log('Migrated '+migrated+' passwords to hash')}}
 
 
+/* ═══════════ OneDrive 資料夾備份（v3.89.0）═══════════
+ * 為什麼要做：原本的雲端備份走 Google Drive，但容量已滿，
+ *   自 2026-07-26 起備份靜默失敗（doGDU 的錯誤只印在 console）。
+ * 原理：OneDrive 資料夾就在本機，檔案寫進去即自動同步上雲。
+ *   用 File System Access API 取得資料夾控制權（handle 存 IndexedDB 可重複使用），
+ *   不需要 Azure 應用註冊，也不佔用 localStorage 配額。
+ * 限制：瀏覽器安全機制要求每個工作階段首次寫入需使用者手勢確認一次。
+ * ─────────────────────────────────────────────── */
+var OB_DB='hm_hr_ob', OB_ST='h', OB_K='dir';
+function _obIdb(){return new Promise(function(res,rej){var r=indexedDB.open(OB_DB,1);
+  r.onupgradeneeded=function(){r.result.createObjectStore(OB_ST)};
+  r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})}
+function _obPut(v){return _obIdb().then(function(d){return new Promise(function(res,rej){
+  var t=d.transaction(OB_ST,'readwrite');t.objectStore(OB_ST).put(v,OB_K);
+  t.oncomplete=function(){res(true)};t.onerror=function(){rej(t.error)}})})}
+function _obGet(){return _obIdb().then(function(d){return new Promise(function(res){
+  var t=d.transaction(OB_ST,'readonly');var q=t.objectStore(OB_ST).get(OB_K);
+  q.onsuccess=function(){res(q.result||null)};q.onerror=function(){res(null)}})}).catch(function(){return null})}
+
+function obSupported(){return typeof window.showDirectoryPicker==='function'}
+
+function obPickDir(){
+  if(!obSupported()){alert('此瀏覽器不支援資料夾備份\n\n請使用 Chrome 或 Edge');return}
+  window.showDirectoryPicker({mode:'readwrite'}).then(function(dir){
+    return _obPut(dir).then(function(){
+      localStorage.setItem('hm_hrob_name',dir.name);
+      logAudit('設定','設定備份資料夾 '+dir.name);
+      alert('✅ 已設定備份資料夾：'+dir.name+'\n\n之後每 8 小時自動寫入一份備份。\n若這是 OneDrive 底下的資料夾，檔案會自動同步上雲。');
+      renderAll();
+    });
+  }).catch(function(e){ if(e && e.name!=='AbortError') alert('設定失敗：'+e.message) });
+}
+
+/* silent=true 時無權限就放棄，不打擾使用者 */
+function obWriteHR(silent){
+  return _obGet().then(function(dir){
+    if(!dir) return {ok:false,reason:'尚未設定備份資料夾'};
+    return dir.queryPermission({mode:'readwrite'}).then(function(p){
+      if(p==='granted') return 'granted';
+      if(silent) return 'skip';
+      return dir.requestPermission({mode:'readwrite'});
+    }).then(function(p){
+      if(p!=='granted') return {ok:false,reason:(p==='skip'?'需手動確認權限':'使用者未授權')};
+      var payload={ts:new Date().toISOString(),sys:'人資系統',ver:(typeof SYS_VERSION!=='undefined'?SYS_VERSION:''),
+        staff:staff, sched:sched, leaveRecords:leaveRecords, payHistory:payHistory,
+        punchRecords:punchRecords, otRecords:otRecords, userAccounts:userAccounts,
+        vacQuota:vacQuota, historyLog:historyLog, auditLog:auditLog,
+        storeHours:storeHours, attendRule:attendRule, rev:rev};
+      var n=new Date(), z=function(x){return String(x).padStart(2,'0')};
+      var fn='人資系統_備份_'+n.getFullYear()+z(n.getMonth()+1)+z(n.getDate())+'.json';
+      return dir.getFileHandle(fn,{create:true}).then(function(fh){
+        return fh.createWritable().then(function(w){
+          return w.write(JSON.stringify(payload)).then(function(){ return w.close() }).then(function(){
+            localStorage.setItem('hm_hrob_last',new Date().toISOString());
+            return {ok:true,name:fn};
+          });
+        });
+      });
+    });
+  }).catch(function(e){ return {ok:false,reason:(e.name||'')+': '+(e.message||'')} });
+}
+
+function obBackupNowHR(){
+  obWriteHR(false).then(function(r){
+    if(r.ok){ logAudit('備份','備份到資料夾 '+r.name); alert('✅ 已備份\n\n檔名：'+r.name); renderAll(); }
+    else alert('❌ 備份失敗：'+r.reason);
+  });
+}
+
 var AUTO_BACKUP_DEFAULT={target:'cloud',freq:8};
-function initAutoBackupDefault(){var setting=localStorage.getItem('hm_autobackup');if(!setting){localStorage.setItem('hm_autobackup',JSON.stringify(AUTO_BACKUP_DEFAULT));setting=JSON.stringify(AUTO_BACKUP_DEFAULT)}try{var cfg=JSON.parse(setting);if(cfg.freq>0){var ms=cfg.freq*3600000;autoBackupInterval=setInterval(function(){if(cfg.target==='cloud'||cfg.target==='both'){if(db)fbFullBackup()}if(cfg.target==='local'||cfg.target==='both'){autoBackup()}},ms);console.log('Auto backup: every '+cfg.freq+'h to '+cfg.target)}}catch(e){}}
+function initAutoBackupDefault(){var setting=localStorage.getItem('hm_autobackup');if(!setting){localStorage.setItem('hm_autobackup',JSON.stringify(AUTO_BACKUP_DEFAULT));setting=JSON.stringify(AUTO_BACKUP_DEFAULT)}try{var cfg=JSON.parse(setting);if(cfg.freq>0){var ms=cfg.freq*3600000;autoBackupInterval=setInterval(function(){
+  /* 資料夾備份優先（Google Drive 容量已滿，不再依賴它） */
+  try{ obWriteHR(true).then(function(r){ if(r&&r.ok) console.log('[備份] 已寫入資料夾 '+r.name) }) }catch(e){}
+  if(cfg.target==='cloud'||cfg.target==='both'){if(db)fbFullBackup()}
+  if(cfg.target==='local'||cfg.target==='both'){autoBackup()}
+},ms);console.log('Auto backup: every '+cfg.freq+'h to '+cfg.target)}}catch(e){}}
 
 
 
