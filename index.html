@@ -1118,13 +1118,14 @@ var schedSal={};
 var storeSupport={};var supportPay={};
 var leaveRecords=[],historyLog={},vacQuota={},payHistory={},auditLog=[],userAccounts=[{user:'boss',pass:'hm$z5fqjz$8',role:'老闆',empId:''}],curUser=null;
 var attendRule={lateMin:30,deductLeaves:['事假'],unpaidMode:'sched'};var restOTManual={};
-var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:8,om:0,ch:17,cm:0,lat:24.76619,lng:121.00812,radius:10000}};
+var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:2,om:0,ch:10,cm:0,lat:24.76619,lng:121.00812,radius:10000}};
 
-var SYS_VERSION='3.90.0';
-var SYS_BUILD='20260730002';
+var SYS_VERSION='3.91.0';
+var SYS_BUILD='20260731001';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'3.91.0',build:'20260731001',date:'2026-07-31',changes:['【修正·台積電店內建營業時間錯誤】程式內建 storeHours 的台積電店寫成 08:00～17:00，實際營運時間為凌晨 02:00～上午 10:00。雲端 hrdata/storeHours 已是正確的 2:00～10:00，但若雲端讀取失敗或新裝置首次載入尚未同步，就會退回這組錯誤的內建值，造成排班時段、遲到早退判定、工時統計全部算錯。本次將內建預設改為 oh:2 / ch:10 與雲端一致（雲端資料不動）','【改善·員工APP 免重開即可套用門市設定】員工APP 的 syncStoreHours() 原本只在啟動時做一次性讀取（Spark 方案節省讀取次數的設計），管理端改了 GPS 圍籬或營業時間後，員工必須完全關閉再重開 APP 才會生效。員工APP v3.13.0 起改為：切回前景（visibilitychange / focus）與網路恢復（online）時自動重讀，並加 5 分鐘節流，避免讀取次數暴增。員工只要把 APP 切到背景再切回來即可拿到新設定']},
 {ver:'3.90.0',build:'20260730002',date:'2026-07-30',changes:['【調整·台積電店打卡GPS圍籬放寬至 10000 公尺】依老闆指示，台積電店允許半徑由 1000m 改為 10000m。台積電為管制廠區，員工實際打卡點常在廠內大樓或接駁點，與門市座標直線距離遠超一般門市尺度，原設定導致大量「不在門市範圍」誤判。同步更新三處：①管理端內建預設 storeHours ②管理端自我修復基準 STORE_GEO ③員工APP內建預設與基準，避免任一端未同步時又被舊值覆蓋回去','【修正·門市設定的圍籬半徑輸入上限過低】打卡GPS圍籬半徑欄位原 max=3000，管理端根本輸入不了 10000，設定完會被瀏覽器擋下或自動夾回。上限放寬至 20000','【提醒·圍籬實際生效值以雲端為準】storeHours 於登入後會被 Firebase hrdata/storeHours 的內容覆蓋，程式內建值僅為初次啟用或欄位缺漏時的補值來源。本次已一併更新雲端設定，兩端一致']},
 {ver:'3.89.0',build:'20260730001',date:'2026-07-30',changes:['【新增·OneDrive 資料夾備份】原本的雲端備份走 Google Drive，但容量已滿，自 2026-07-26 起備份靜默失敗（錯誤只印在 console，畫面沒有任何提示）。新增資料夾備份：用 File System Access API 取得 OneDrive 資料夾控制權，檔案寫進去即自動同步上雲，不需要 Azure 應用註冊、也不佔用瀏覽器儲存配額','【備份管理中心改版】狀態卡由 2 格改為 3 格（本機下載／OneDrive 資料夾／Firebase 雲端），新增 OneDrive 專區可設定資料夾與立即備份；未設定時明確警示 Google Drive 已失效','【自動備份】每 8 小時的自動備份改為優先寫入資料夾，Google Drive 與本機下載維持原行為作為備援','⚠ 瀏覽器安全機制：每次重開分頁後首次寫入需按一下確認，同一分頁內後續自動備份不再詢問。僅支援 Chrome / Edge']},
 {ver:'3.88.0',build:'20260727001',date:'2026-07-27',changes:['【資安·session 不再儲存明文密碼】原本勾選「記住我」會把明文密碼寫進 localStorage(hm_session)，裝置遺失或被他人操作即等同帳號洩漏。改為儲存已雜湊的值，還原時比對雜湊；密碼一經變更雜湊不符即自動失效需重新登入。⚠本次更新後既有的記住我 session 會失效一次，需重新登入','【資安·原始碼不再出現出廠預設密碼】userAccounts 的 boss 種子由明文 boss1234 改存預先計算的雜湊值，登入行為完全不變（verifyPass 相容）。既有帳號不受影響','【一致性】改密碼後同步更新 session 內的雜湊值，避免改完密碼下次自動登入失敗']},
