@@ -589,6 +589,8 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 <div class="ov" id="ov-add-support" onclick="if(event.target===this)closeAddSupport()"><div class="modal" style="max-width:480px"><div class="mh"><span class="mt">⇄ 跨店支援 — <span id="sup-store-name"></span></span><button class="mc" onclick="closeAddSupport()">✕</button></div>
 <div style="background:#e0f2fe;border:1px solid #7dd3fc;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:#0369a1;line-height:1.7">從其他門市調派員工支援 <b id="sup-store-name2"></b>（本月），勾選後按儲存即可加入排班表。</div>
+<div id="sup-carry-note" style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:11px;color:#92400e;line-height:1.7"></div>
+<button class="bar-btn" style="width:100%;margin-bottom:10px;background:rgba(6,182,212,.12);border-color:var(--cyan);color:#0e7490;font-weight:700" onclick="copyPrevSupport()">📋 帶入上月名單</button>
 <div id="support-list" style="max-height:300px;overflow-y:auto"></div>
 <div class="action-btns" style="margin-top:14px"><button class="btn-apply" style="width:100%" onclick="saveSupport()">✓ 儲存支援名單</button></div>
 </div></div>
@@ -924,7 +926,7 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 <b>首次登入</b>　系統自動提醒修改密碼<br>
 <b>管理入口</b>　👤員工資料 → 🔑帳號管理<br>
 • 👤 修改角色（老闆/店長/員工）｜ 🔗 綁定員工 ｜ 🔑 重設密碼 ｜ ✕ 刪除<br>
-<b>保費計費天數</b>　勞保與勞退<b>不論大小月一律以 30 日計算</b>：當月加保天數＝30−加保日+1（30日或31日加保均計 1 日），整月在保一律算 30 天（2 月也是）。健保則<b>以月為單位</b>，依當月最末日在保單位整月計收，不按日拆算<br><b>跨店支援</b>　支援薪資由支援門市負擔，與本店月薪起算日無關 —— 到職日之前、離職日之後只要有排支援班一樣照給。支援金額顯示在薪資表加班費欄下方的「🤝支援」小字<br><b>投保薪資</b>　勞保／勞退／職災<b>設定多少就以多少計算</b>，低於法定下限只跳警示不改金額。<b>健保例外</b>：投保金額依法不得低於基本工資 29,500（部分工時亦同），系統一律以 29,500 為下限計費<br><b>法定下限（僅供警示）</b>　勞保：兼職 11,100、<b>全職 29,500</b>；健保：<b>一律 29,500，部分工時也不能低於基本工資</b>（與勞保最大的差異）；勞退：1,500<br><b>投保薪資</b>　保費一律以員工資料「投保薪資」欄設定的金額計算（有填「調整後投保薪資」且調整日期已到，則改用調整後的）。薪資表勞保欄下方會顯示實際採用的投保薪資。若低於法定級距會標示「⚠低報(應X)」——系統不會自動改你的設定，但低報有罰則，請儘快到勞保局調整<br><b>颱風日出勤</b>　颱風日<b>有來上班</b>的排「🌀颱風日出勤」並填實際時間 → <b>照給當日全額工資</b>，不因縮短工時扣薪、不算遲到、不影響全勤（依法）。不另加給。兼職照實際工時計<br><b>颱風假</b>　颱風日<b>沒來</b>的排「🌀颱風假」。<b>依天數比例扣薪</b>（月薪÷30×天數），顯示在薪資表「颱風假扣薪」欄；兼職當日無工時。<b>依法不得扣發全勤獎金</b>（系統已強制不影響全勤），也不得要求補班或視為曠工。颱風天來上班者照常班計薪，不另加給<br><b>試做期</b>　到職日與「月薪起算日」不同時，中間這段依基本工資時薪（196）計酬，顯示在本薪欄下方紫色小字。例：7/12 到職、7/13 起算月薪 → 7/12 上 8 小時 = 1,568 元，月薪另按 19/30 發<br><b>加班</b>　員工於APP申請 → 老闆核准 → 選加班費或補休（員工可在APP自選，老闆也可在加班紀錄直接代選）。選「加班費」後當月薪資自動計入<br><b>加班費率（勞基法§24）</b>　平日每小時工資額＝<b>月薪總額÷240</b>（含全勤／職務／夜班／伙食等經常性給與，節慶禮金不計）。平日延長：前2小時×4/3、第3小時起×5/3，一日總工時上限12小時。休息日：前2小時×4/3、第3~8小時×5/3、第9小時起×8/3。哪些項目計入基數可於「⚙ 新增薪資種類」逐項勾選<br><b>忘記密碼</b>　管理端：登入頁「忘記密碼」→ 輸入復原密碼 → 逐一重設帳號密碼 ｜ APP：帳號+身分證驗證<br><b>設定復原密碼</b>　👤員工資料 → 🔑帳號管理 → 最下方「🔑 復原密碼」（僅老闆）。首次設定免填舊碼；密碼雜湊後存雲端，所有裝置同步，系統無法查回原文，請自行記在安全的地方。連續錯 5 次鎖 15 分鐘<br>
+<b>保費計費天數</b>　勞保與勞退<b>不論大小月一律以 30 日計算</b>：當月加保天數＝30−加保日+1（30日或31日加保均計 1 日），整月在保一律算 30 天（2 月也是）。健保則<b>以月為單位</b>，依當月最末日在保單位整月計收，不按日拆算<br><b>跨店支援名單</b>　名單<b>按月儲存</b>，每個月都要重新指定。切到新月份時系統會自動預帶上月名單，<b>確認後要按儲存才生效</b>；也可按「📋 帶入上月名單」手動套用<br><b>跨店支援</b>　支援薪資由支援門市負擔，與本店月薪起算日無關 —— 到職日之前、離職日之後只要有排支援班一樣照給。支援金額顯示在薪資表加班費欄下方的「🤝支援」小字<br><b>投保薪資</b>　勞保／勞退／職災<b>設定多少就以多少計算</b>，低於法定下限只跳警示不改金額。<b>健保例外</b>：投保金額依法不得低於基本工資 29,500（部分工時亦同），系統一律以 29,500 為下限計費<br><b>法定下限（僅供警示）</b>　勞保：兼職 11,100、<b>全職 29,500</b>；健保：<b>一律 29,500，部分工時也不能低於基本工資</b>（與勞保最大的差異）；勞退：1,500<br><b>投保薪資</b>　保費一律以員工資料「投保薪資」欄設定的金額計算（有填「調整後投保薪資」且調整日期已到，則改用調整後的）。薪資表勞保欄下方會顯示實際採用的投保薪資。若低於法定級距會標示「⚠低報(應X)」——系統不會自動改你的設定，但低報有罰則，請儘快到勞保局調整<br><b>颱風日出勤</b>　颱風日<b>有來上班</b>的排「🌀颱風日出勤」並填實際時間 → <b>照給當日全額工資</b>，不因縮短工時扣薪、不算遲到、不影響全勤（依法）。不另加給。兼職照實際工時計<br><b>颱風假</b>　颱風日<b>沒來</b>的排「🌀颱風假」。<b>依天數比例扣薪</b>（月薪÷30×天數），顯示在薪資表「颱風假扣薪」欄；兼職當日無工時。<b>依法不得扣發全勤獎金</b>（系統已強制不影響全勤），也不得要求補班或視為曠工。颱風天來上班者照常班計薪，不另加給<br><b>試做期</b>　到職日與「月薪起算日」不同時，中間這段依基本工資時薪（196）計酬，顯示在本薪欄下方紫色小字。例：7/12 到職、7/13 起算月薪 → 7/12 上 8 小時 = 1,568 元，月薪另按 19/30 發<br><b>加班</b>　員工於APP申請 → 老闆核准 → 選加班費或補休（員工可在APP自選，老闆也可在加班紀錄直接代選）。選「加班費」後當月薪資自動計入<br><b>加班費率（勞基法§24）</b>　平日每小時工資額＝<b>月薪總額÷240</b>（含全勤／職務／夜班／伙食等經常性給與，節慶禮金不計）。平日延長：前2小時×4/3、第3小時起×5/3，一日總工時上限12小時。休息日：前2小時×4/3、第3~8小時×5/3、第9小時起×8/3。哪些項目計入基數可於「⚙ 新增薪資種類」逐項勾選<br><b>忘記密碼</b>　管理端：登入頁「忘記密碼」→ 輸入復原密碼 → 逐一重設帳號密碼 ｜ APP：帳號+身分證驗證<br><b>設定復原密碼</b>　👤員工資料 → 🔑帳號管理 → 最下方「🔑 復原密碼」（僅老闆）。首次設定免填舊碼；密碼雜湊後存雲端，所有裝置同步，系統無法查回原文，請自行記在安全的地方。連續錯 5 次鎖 15 分鐘<br>
 <b>離職</b>　填入離職日期 → 帳號自動停用
 </div>
 
@@ -1163,11 +1165,12 @@ var leaveRecords=[],historyLog={},vacQuota={},payHistory={},auditLog=[],userAcco
 var attendRule={lateMin:30,deductLeaves:['事假'],unpaidMode:'sched'};var restOTManual={};
 var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:2,om:0,ch:10,cm:0,lat:24.76619,lng:121.00812,radius:10000}};
 
-var SYS_VERSION='4.2.1';
-var SYS_BUILD='20260808009';
+var SYS_VERSION='4.3.0';
+var SYS_BUILD='20260808010';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'4.3.0',build:'20260808010',date:'2026-08-08',changes:['【★改善·支援名單切換月份就不見】跨店支援名單是「按月」儲存的（storeSupport[年月][門市]），切到新的月份就是空的，很容易誤以為功能失效。現在開啟「跨店支援」時，若本月尚未指定，會自動預帶上個月的名單並在上方明確提示「已自動帶入上月名單，確認後請按儲存才會生效」；另新增「📋 帶入上月名單」按鈕可隨時手動套用','【★修正·搜尋後儲存會把支援人員整批清空】「＋ 新增/刪除員工」的儲存原本直接掃畫面上的 checkbox，但搜尋框會即時重繪清單 —— 只要先搜尋再按儲存，沒被搜尋到的支援人員因為不在畫面上就被整批移除。改為將勾選狀態存在記憶體，搜尋過濾完全不影響儲存結果','【調整】「＋ 新增/刪除員工」的人數改為顯示「已選 N 人（本店 X ＋ 支援 Y）」，並在儲存時寫入操作紀錄','【更正說明】先前回報「跨店支援與新增員工兩個入口會互相覆蓋」有誤 —— 兩邊都會先讀取既有名單再預先勾選，來回儲存不會掉資料。真正的問題是上述搜尋過濾那一項']},
 {ver:'4.2.1',build:'20260808009',date:'2026-08-08',changes:['【★緊急修正·v4.2.0 完全無法登入】v4.2.0 的更新紀錄文字裡描述另一個 bug 時寫了一段含單引號的程式碼片段，那兩個單引號把 JS 字串切斷，後半段變成變數參照，載入時直接拋 ReferenceError。SYS_CHANGELOG 之後的所有程式碼全部沒執行到 —— Firebase 沒初始化、帳號沒從雲端載入，只剩程式內建的預設帳號，所以任何密碼都登不進去','【根本原因】node --check 只驗語法，這段程式碼語法完全合法（字串＋變數＋字串），錯誤只在執行期才會出現，所以七層檢查的第 2 層過關卻仍上線壞版','【流程改進】新增「載入冒煙測試」：用 jsdom 實際執行整份內嵌 script，補上 firebase/fetch/crypto 等替身，捕捉 window.onerror 並驗證頂層變數是否都有值。已用它回頭驗證 v4.2.0 確實會拋 ReferenceError: bd is not defined，並確認人資／財會／生管／員工APP／中控 五套系統目前皆可完整載入。工具檔：系統建置\\載入冒煙測試_loadsmoke.js','【提醒】更新紀錄文字中不要出現單引號；描述程式碼請改用全形符號或直接省略引號']},
 {ver:'4.2.0',build:'20260808008',date:'2026-08-08',changes:['【★修正·薪資表顏色區塊全面錯位】群組標題（應發／應扣／實發出勤／雇主負擔／薪資單／備註）的 colspan 與第二列實際欄位數不符：應發固定欄實際 5 欄但寫 4（「🎂生日禮金」加欄後沒同步），應扣固定欄實際 8 欄但寫 6（「不予計薪」與「颱風假扣薪」加欄後沒同步）—— 共少算 3 欄，導致後面所有群組往左偏移 3 格，出現「薪資單／備註」夾在雇主負擔中間、顏色對不上欄位的情形。已將固定欄數抽成 EARN_FIXED／DED_FIXED 常數，群組標題與合計列共用同一個值，日後加欄不會再脫鉤','【修正·「不予計薪」欄位無底色】該欄表頭的 style 屬性少了開頭的雙引號，整個屬性失效變成白底，與其他應扣欄位不一致。已補回','【修正·合計列欄位錯位】合計列的兩個 colspan 同樣寫死 4 與 6，已改用同一組常數','【新增·薪資頁門市篩選】標題旁新增門市下拉（全部／各門市），一次只看一間店。右側顯示「顯示人數／全部人數」，底部統計列同步標示目前篩選的門市。選擇會記在本機，下次進來維持上次的選擇']},
 {ver:'4.1.0',build:'20260808007',date:'2026-08-08',changes:['【★修正·月薪起算日之前的跨店支援班沒算到薪資】跨店支援有兩種寫法：一種是附加在一般班次上（c.sup），另一種是整格排成「支援時薪」（c.type=support）。前者原本就在月薪期間判斷（continue）之前計算，後者卻在之後 —— 導致到職日／月薪起算日之前、或離職日之後的整格支援班，畫面上有金額但薪資表完全拿不到。例：陳惠君月薪起算日 7/13，7/6 與 7/7 的支援班 NT$882×2＝1,764 全數漏發。已將整格支援班一併移到 continue 之前計算','【說明】跨店支援是支援店付的錢，與本店月薪起算日無關 —— 只要有排支援班、有提供勞務就應給付，到職前與離職後皆同。支援成本仍正確歸屬到支援門市（suppByStore）','【防呆】原本的 support 分支改為不再重複累加，避免同一筆支援被算兩次']},
@@ -1501,7 +1504,33 @@ function closeStoreHours(){document.getElementById('ov-store-hours').classList.r
 var STORE_GEO={'總公司':{lat:24.81472,lng:121.02525,radius:200},'交大店':{lat:24.78374,lng:120.99706,radius:200},'台積電店':{lat:24.76619,lng:121.00812,radius:10000}};
 function _healStoreGeo(){var ch=false;Object.keys(STORE_GEO).forEach(function(s){var g=STORE_GEO[s];if(!storeHours[s])storeHours[s]={oh:9,om:0,ch:21,cm:0};var t=storeHours[s];if(t.lat===undefined||t.lat===null){t.lat=g.lat;ch=true}if(t.lng===undefined||t.lng===null){t.lng=g.lng;ch=true}if(!t.radius){t.radius=g.radius;ch=true}});return ch}
 function saveStoreHours(){document.querySelectorAll('.sh-open').forEach(function(inp){var s=inp.getAttribute('data-store');var ov=inp.value.split(':').map(Number);var cv=document.querySelector('.sh-close[data-store="'+s+'"]').value.split(':').map(Number);var _pv=storeHours[s]||{},_g=STORE_GEO[s]||{},_rEl=document.querySelector('.sh-radius[data-store="'+s+'"]');storeHours[s]={oh:ov[0],om:ov[1]||0,ch:cv[0],cm:cv[1]||0,lat:(_pv.lat!==undefined&&_pv.lat!==null?_pv.lat:_g.lat),lng:(_pv.lng!==undefined&&_pv.lng!==null?_pv.lng:_g.lng),radius:((_rEl&&+_rEl.value>0)?+_rEl.value:(_pv.radius||_g.radius||200))}});save();closeStoreHours();refreshSchedStore();renderSched()}
-function openAddSupport(){if(!schedStore){alert('請先選擇門市');return}document.getElementById('sup-store-name').textContent=schedStore;document.getElementById('sup-store-name2').textContent=schedStore;var mk=(curY+1911)+'-'+pad(curM);var curSup=(storeSupport[mk]&&storeSupport[mk][schedStore])||[];var others=staff.filter(function(e){return e.store!==schedStore});var h='';if(!others.length){h='<div style="text-align:center;padding:20px;color:var(--gray4)">沒有其他門市的員工</div>'}others.forEach(function(e){var t=typ(e.role),tc=TCOL[t]||['#f0f0f0','#666'];var checked=curSup.indexOf(e.id)>=0;h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray2)"><label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer"><input type="checkbox" class="sup-chk" value="'+e.id+'"'+(checked?' checked':'')+'><div class="si-av" style="width:22px;height:22px;border-radius:50%;background:'+tc[0]+';color:'+tc[1]+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">'+e.name[0]+'</div><div><div style="font-size:12px;font-weight:700">'+e.name+'</div><div style="font-size:10px;color:var(--gray5)">'+e.role+' · '+e.store+'</div></div></label></div>'});document.getElementById('support-list').innerHTML=h;document.getElementById('ov-add-support').classList.add('show')}
+/* [v4.3.0] 支援名單是「按月」儲存的，每個月都要重新指定 —— 切到新的月份
+   名單就是空的，很容易以為功能壞了。以下提供「帶入上月名單」，
+   並在本月尚未指定時自動預帶（仍需按儲存才會生效）。 */
+function _prevMk(){var y=curY,m=curM-1;if(m<1){m=12;y--}return (y+1911)+'-'+pad(m)}
+function _supOf(mk,store){return (storeSupport[mk]&&storeSupport[mk][store])||[]}
+function _supCarry(){
+  /* 回傳本月名單；本月從未指定過就回上月的（僅供預帶顯示） */
+  var mk=(curY+1911)+'-'+pad(curM);
+  var cur=storeSupport[mk]&&storeSupport[mk][schedStore];
+  if(cur&&cur.length)return {ids:cur,carried:false};
+  var prev=_supOf(_prevMk(),schedStore);
+  return {ids:prev.slice(),carried:prev.length>0};
+}
+function copyPrevSupport(){
+  var prev=_supOf(_prevMk(),schedStore);
+  if(!prev.length){alert('上個月（'+_prevMk()+'）'+schedStore+'沒有支援名單');return}
+  document.querySelectorAll('.sup-chk').forEach(function(c){c.checked=prev.indexOf(c.value)>=0});
+  var el=document.getElementById('sup-carry-note');
+  if(el)el.innerHTML='已帶入上月（'+_prevMk()+'）名單 <b>'+prev.length+'</b> 人，確認後請按下方儲存';
+}
+function openAddSupport(){if(!schedStore){alert('請先選擇門市');return}document.getElementById('sup-store-name').textContent=schedStore;document.getElementById('sup-store-name2').textContent=schedStore;var mk=(curY+1911)+'-'+pad(curM);
+  var _cr=_supCarry();var curSup=_cr.ids;
+  var note=document.getElementById('sup-carry-note');
+  if(note)note.innerHTML=_cr.carried
+    ? '⚠ <b>'+mk+'</b> 尚未指定支援名單，已自動帶入上月（'+_prevMk()+'）的 <b>'+curSup.length+'</b> 人。<b>確認後請按下方儲存才會生效。</b>'
+    : '支援名單是<b>按月</b>儲存的，每個月都要重新指定一次。';
+  var others=staff.filter(function(e){return e.store!==schedStore});var h='';if(!others.length){h='<div style="text-align:center;padding:20px;color:var(--gray4)">沒有其他門市的員工</div>'}others.forEach(function(e){var t=typ(e.role),tc=TCOL[t]||['#f0f0f0','#666'];var checked=curSup.indexOf(e.id)>=0;h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray2)"><label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer"><input type="checkbox" class="sup-chk" value="'+e.id+'"'+(checked?' checked':'')+'><div class="si-av" style="width:22px;height:22px;border-radius:50%;background:'+tc[0]+';color:'+tc[1]+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">'+e.name[0]+'</div><div><div style="font-size:12px;font-weight:700">'+e.name+'</div><div style="font-size:10px;color:var(--gray5)">'+e.role+' · '+e.store+'</div></div></label></div>'});document.getElementById('support-list').innerHTML=h;document.getElementById('ov-add-support').classList.add('show')}
 function closeAddSupport(){document.getElementById('ov-add-support').classList.remove('show')}
 function saveSupport(){var mk=(curY+1911)+'-'+pad(curM);if(!storeSupport[mk])storeSupport[mk]={};var ids=[];document.querySelectorAll('.sup-chk:checked').forEach(function(c){ids.push(c.value)});storeSupport[mk][schedStore]=ids;save();closeAddSupport();renderSched();alert('已更新'+schedStore+'支援名單（'+ids.length+'人）')}
 function typ(role){return TMAP[role]||'兼職'}
@@ -1810,11 +1839,37 @@ function syncEt(w,fin){var hs=document.getElementById(w+'-h'),ms=document.getEle
 function applyE(){if(applyE._lk)return;applyE._lk=1;setTimeout(function(){applyE._lk=0},400);_skipSchedSnapshot=true;pushUndo('編輯排班');if(!eEmp||!eDate)return;var _preSup=(sched[eEmp]&&sched[eEmp][dk(eDate)])?sched[eEmp][dk(eDate)].sup:null;if(eType==='上班'||eType==='休息日加班'||eType==='颱風出勤'){var sv=(document.getElementById('es').value||'09:00').split(':').map(Number),ev=(document.getElementById('ee').value||'17:00').split(':').map(Number);if((ev[0]+ev[1]/60)<=(sv[0]+sv[1]/60)){alert('下班須晚於上班');return}if(!sched[eEmp])sched[eEmp]={};var _cell={type:(eType==='休息日加班'?'restOT':(eType==='颱風出勤'?'颱風出勤':'work')),sh:sv[0],sm:sv[1],eh:ev[0],em:ev[1]};if(eType==='休息日加班'){var _omf2=document.querySelector('input[name=e-otmode]:checked');if(_omf2&&_omf2.value==='fixed'){var _rt=+(document.getElementById('e-otrate').value||0);if(!(_rt>0)){alert('請填固定時薪');return}var _hh2=(ev[0]+ev[1]/60)-(sv[0]+sv[1]/60);var _emp2=staff.find(function(x){return x.id===eEmp});var _hr2=Math.round((_emp2&&_emp2.salary?_emp2.salary:0)/240);var _lg2=Math.round(_hr2*5/3);if(_lg2>0&&_rt<_lg2&&_hh2>2&&!confirm('⚠ 固定時薪 '+_rt+' 低於法定休息日加班費（第3~8小時約 '+_lg2+'/時）。\n超過2小時部分將低於法定加班費，可能違反勞基法第24條。\n\n確定仍以固定時薪 '+_rt+' 套用？')){return}_cell.otRate=_rt;_lastOtRate=_rt;try{localStorage.setItem('hm_last_otrate',_rt)}catch(e){}}}sched[eEmp][dk(eDate)]=_cell}else if(eType==='支援時薪'){var _ssv=(document.getElementById('es').value||'09:00').split(':').map(Number),_sev=(document.getElementById('ee').value||'17:00').split(':').map(Number);if((_sev[0]+_sev[1]/60)<=(_ssv[0]+_ssv[1]/60)){alert('下班須晚於上班');return}var _sst=document.getElementById('e-suppstore').value;var _srt=+(document.getElementById('e-supprate').value||0);if(!_sst){alert('請選擇支援門市');return}var _smode=document.getElementById('e-suppmode')?document.getElementById('e-suppmode').value:'hourly';if(_smode!=='overtime'&&!(_srt>0)){alert(_smode==='fixed'?'請填固定時薪':'請填支援時薪');return}if(!sched[eEmp])sched[eEmp]={};var _empE=staff.find(function(x){return x.id===eEmp});var _supObj={store:_sst,sh:_ssv[0],sm:_ssv[1],eh:_sev[0],em:_sev[1],rate:_srt,mode:_smode};if(_empE&&_empE.store!==_sst){var _cur=sched[eEmp][dk(eDate)];if(!_cur||_cur.type==='support')_cur={type:'blank'};_cur.sup=_supObj;sched[eEmp][dk(eDate)]=_cur;}else{sched[eEmp][dk(eDate)]={type:'support',store:_sst,sh:_ssv[0],sm:_ssv[1],eh:_sev[0],em:_sev[1],rate:_srt,mode:_smode};}}else if(eType==='空白'){if(!sched[eEmp])sched[eEmp]={};sched[eEmp][dk(eDate)]={type:'blank'}}else{if(!sched[eEmp])sched[eEmp]={};sched[eEmp][dk(eDate)]={type:eType}}var _fcS=sched[eEmp]&&sched[eEmp][dk(eDate)];if(_fcS&&_preSup&&!_fcS.sup&&_fcS.type!=='support')_fcS.sup=_preSup;save();closeEdit();renderSched();if(db){var _mk2=(curY+1911)+'-'+pad(curM);var _ek=dk(eDate);var _wd={};_wd[eEmp]={};_wd[eEmp][_ek]=(sched[eEmp]&&sched[eEmp][_ek]!==undefined)?sched[eEmp][_ek]:firebase.firestore.FieldValue.delete();db.collection(fbCol('schedules')).doc(_mk2).set({data:_wd,year:curY+1911,month:curM},{merge:true}).then(function(){_skipSchedSnapshot=false}).catch(function(){_skipSchedSnapshot=false})}setTimeout(function(){_skipSchedSnapshot=false},5000);if(document.getElementById('panel-pay').classList.contains('active'))renderPay()}
 
 
-function openStaff(){if(!schedStore){alert('請先選擇門市');return}document.getElementById('staff-store-name').textContent=schedStore;document.getElementById('staff-store-name2').textContent=schedStore;document.getElementById('staff-search').value='';renderStaffList();document.getElementById('ov-staff').classList.add('show')}
+/* [v4.3.0] 支援名單的勾選狀態改存在記憶體，不再依賴畫面上還剩幾個 checkbox。
+   舊版 saveStaffSelection 直接掃 DOM，若先用搜尋框過濾再儲存，
+   沒被搜尋到的支援人員不在 DOM 裡 → 整批被移除。 */
+var _supSel=null;
+function _supSelInit(){
+  var mk=(curY+1911)+'-'+pad(curM);
+  _supSel={};
+  ((storeSupport[mk]&&storeSupport[mk][schedStore])||[]).forEach(function(id){_supSel[id]=1});
+}
+function toggleStaffSel(id,on){
+  if(!_supSel)_supSelInit();
+  if(on)_supSel[id]=1; else delete _supSel[id];
+  updateStaffCount();
+}
+function openStaff(){if(!schedStore){alert('請先選擇門市');return}
+  _supSelInit();
+  document.getElementById('staff-store-name').textContent=schedStore;document.getElementById('staff-store-name2').textContent=schedStore;document.getElementById('staff-search').value='';renderStaffList();document.getElementById('ov-staff').classList.add('show')}
 function closeStaff(){document.getElementById('ov-staff').classList.remove('show')}
-function renderStaffList(){var mk=(curY+1911)+'-'+pad(curM);var supIds=(storeSupport[mk]&&storeSupport[mk][schedStore])||[];var q=(document.getElementById('staff-search').value||'').toLowerCase();var html='';var selCount=0;staff.forEach(function(e){if(e.leave_date&&e.leave_date<new Date().toISOString().substring(0,10))return;if(q&&(e.name+e.role+(e.store||'')).toLowerCase().indexOf(q)<0)return;var t=typ(e.role),tc=TCOL[t]||['#f0f0f0','#333'];var isHome=e.store===schedStore;var isSup=supIds.indexOf(e.id)>=0;var checked=isHome||isSup;if(checked)selCount++;var storeTag=isHome?'<span style="color:var(--green3);font-size:9px;font-weight:700">本店</span>':'<span style="color:var(--cyan);font-size:9px;font-weight:700">'+e.store+'</span>';html+='<div class="si-item" style="'+(checked?'background:#f0f9ff;border-left:3px solid var(--blue)':'border-left:3px solid transparent')+'"><label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer"><input type="checkbox" class="staff-chk" value="'+e.id+'" data-home="'+(isHome?1:0)+'"'+(checked?' checked':'')+(isHome?' disabled':'')+' onchange="updateStaffCount()"><div class="si-av" style="background:'+tc[0]+';color:'+tc[1]+'">'+e.name[0]+'</div><div><div style="font-size:14px;font-weight:700">'+e.name+'</div><div style="font-size:10px;color:var(--gray5)">'+e.role+' · '+storeTag+' · '+fM(getSchedSal(e.role))+(t==='兼職'?'元/時':'元/月')+'</div></div></label></div>'});document.getElementById('slist').innerHTML=html||'<div style="text-align:center;padding:20px;color:var(--gray4)">無符合員工</div>';document.getElementById('staff-sel-count').textContent='已選 '+selCount+' 人'}
-function updateStaffCount(){var c=document.querySelectorAll('.staff-chk:checked').length;document.getElementById('staff-sel-count').textContent='已選 '+c+' 人'}
-function saveStaffSelection(){var mk=(curY+1911)+'-'+pad(curM);var supIds=[];document.querySelectorAll('.staff-chk:checked').forEach(function(chk){if(chk.getAttribute('data-home')==='0')supIds.push(chk.value)});if(!storeSupport[mk])storeSupport[mk]={};storeSupport[mk][schedStore]=supIds;save();closeStaff();renderSched()}
+function renderStaffList(){var mk=(curY+1911)+'-'+pad(curM);
+  if(!_supSel)_supSelInit();
+  var supIds=Object.keys(_supSel);var q=(document.getElementById('staff-search').value||'').toLowerCase();var html='';var selCount=0;staff.forEach(function(e){if(e.leave_date&&e.leave_date<new Date().toISOString().substring(0,10))return;if(q&&(e.name+e.role+(e.store||'')).toLowerCase().indexOf(q)<0)return;var t=typ(e.role),tc=TCOL[t]||['#f0f0f0','#333'];var isHome=e.store===schedStore;var isSup=supIds.indexOf(e.id)>=0;var checked=isHome||isSup;if(checked)selCount++;var storeTag=isHome?'<span style="color:var(--green3);font-size:9px;font-weight:700">本店</span>':'<span style="color:var(--cyan);font-size:9px;font-weight:700">'+e.store+'</span>';html+='<div class="si-item" style="'+(checked?'background:#f0f9ff;border-left:3px solid var(--blue)':'border-left:3px solid transparent')+'"><label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer"><input type="checkbox" class="staff-chk" value="'+e.id+'" data-home="'+(isHome?1:0)+'"'+(checked?' checked':'')+(isHome?' disabled':'')+' onchange="toggleStaffSel(\''+e.id+'\',this.checked)"><div class="si-av" style="background:'+tc[0]+';color:'+tc[1]+'">'+e.name[0]+'</div><div><div style="font-size:14px;font-weight:700">'+e.name+'</div><div style="font-size:10px;color:var(--gray5)">'+e.role+' · '+storeTag+' · '+fM(getSchedSal(e.role))+(t==='兼職'?'元/時':'元/月')+'</div></div></label></div>'});document.getElementById('slist').innerHTML=html||'<div style="text-align:center;padding:20px;color:var(--gray4)">無符合員工</div>';document.getElementById('staff-sel-count').textContent='已選 '+selCount+' 人'}
+function updateStaffCount(){
+  var home=staff.filter(function(e){return e.store===schedStore&&!(e.leave_date&&e.leave_date<new Date().toISOString().substring(0,10))}).length;
+  var sup=Object.keys(_supSel||{}).length;
+  document.getElementById('staff-sel-count').textContent='已選 '+(home+sup)+' 人（本店 '+home+' ＋ 支援 '+sup+'）'}
+function saveStaffSelection(){var mk=(curY+1911)+'-'+pad(curM);
+  var supIds=Object.keys(_supSel||{});
+  if(!storeSupport[mk])storeSupport[mk]={};
+  storeSupport[mk][schedStore]=supIds;
+  save();closeStaff();renderSched();
+  try{logAudit('排班','更新 '+schedStore+' '+mk+' 支援名單（'+supIds.length+' 人）')}catch(e){}}
 
 
 
