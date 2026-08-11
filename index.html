@@ -1165,11 +1165,12 @@ var leaveRecords=[],historyLog={},vacQuota={},payHistory={},auditLog=[],userAcco
 var attendRule={lateMin:30,deductLeaves:['事假'],unpaidMode:'sched'};var restOTManual={};
 var storeHours={'總公司':{oh:9,om:0,ch:18,cm:0,lat:24.81472,lng:121.02525,radius:200},'交大店':{oh:9,om:0,ch:21,cm:0,lat:24.78374,lng:120.99706,radius:200},'台積電店':{oh:2,om:0,ch:10,cm:0,lat:24.76619,lng:121.00812,radius:10000}};
 
-var SYS_VERSION='4.8.0';
-var SYS_BUILD='20260809004';
+var SYS_VERSION='4.8.1';
+var SYS_BUILD='20260811001';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'4.8.1',build:'20260811001',date:'2026-08-11',changes:['【★緊急修正·當月打卡記錄整批不顯示】v4.7.0 的當月分片監聽寫成「濾掉所有當月的紀錄，再換成分片內容」，這假設當月資料全部在分片裡。但在還沒搬移的相容期，當月打卡其實是在舊文件裡 —— 分片只要一存在（有人用新版打了一次卡就會建立），這一行就把舊文件來的當月紀錄整批濾掉，畫面上當月打卡就全部消失', '【資料沒有遺失】被影響的只有畫面顯示，舊文件的紀錄一筆都沒動。重新整理即可看到', '【修正方式】舊文件還有資料時只做合併、絕不濾除；等搬移並清空舊文件後，當月的權威才回到分片，那時才用取代式（別台裝置刪除的紀錄才反映得出來）', '【教訓】相容期的「雙來源」設計，任何一邊都不可以假設自己是完整的']},
 {ver:'4.8.0',build:'20260809004',date:'2026-08-09',changes:['【★新增·離職員工保留 3 個月】依老闆指定：離職後 3 個月內資料仍看得到，但離職當天就不能再登入。全檔 108 處離職判斷用途完全不同，逐處判斷後分成三類處理', '【① 顯示類·放寬】排班表、薪資計算、出勤報表、打卡記錄表、打卡紀錄查詢、特休總覽、特休結算、支援成本、人力成本、排班合規檢查、員工人數統計 —— 這些是要看得到剛離職的人的地方。結算最後一個月薪資、核對出勤、補資料都需要，離職當天就消失反而做不完事', '【② 未來動作·維持嚴格】新增/刪除排班員工、批量時間套用、補建帳號、加班／換班／劃休／補打卡申請、證照體檢提醒 —— 這些是往後要做的事，離職的人本來就不該出現在選單裡', '【③ 薪資比例計算·完全不動】到職／離職當月按在職天數折算的 _partial 與 _pt 一個字沒改。這是法遵計算，放寬會直接算錯錢', '【登入】離職當天即停用帳號的行為完全不變，這一版沒有放寬任何權限', '【設定】保留月數集中在 LEAVE_KEEP_MONTHS 常數，日後要改成 6 個月只需改一個數字']},
 {ver:'4.7.0',build:'20260809003',date:'2026-08-09',changes:['【★重大·打卡紀錄改為一個月一份文件】舊版把全公司的打卡塞在單一雲端文件裡不斷累加，而 Firestore 單一文件上限 1MB —— 以三店約 450 筆/日估算，2026 年 9 月上旬就會撞到。撞到之後每一次打卡都會失敗而且完全靜默：員工照按、畫面顯示成功、資料沒進去。這同時是勞基法§30 出勤紀錄應保存 5 年的違法缺口', '【相容】載入時新分片與舊文件都會讀、合併後以 id 去重，兩邊都不會漏。舊文件不會自動刪除', '【新增·📦 搬移舊打卡紀錄】打卡記錄表工具列（限老闆）。先列出每個月幾筆給你看，只新增不覆蓋，搬完逐月回讀驗證筆數。舊文件原封不動保留，確認無誤再按第二顆鈕清除', '【★修正·寫入失敗不再靜默】舊版打卡寫雲端失敗是直接吞掉錯誤，畫面照樣顯示成功。現在會在畫面最上方跳紅色警示條', '【安全網】雲端尚未載入完成時，不允許整份改寫分片，避免把其他裝置的紀錄洗掉', '【用量】即時監聽只訂閱當月那一份（約 40KB），不再是會長到 1MB 的大文件']},
 {ver:'4.6.3',build:'20260809002',date:'2026-08-09',changes:['【用量·稽核軌跡不再即時監聽】每一個操作都會寫操作紀錄，而只要它被寫入，所有開著人資系統的裝置都各被算一次雲端讀取。老闆在班表點 100 下、三台裝置開著就是 300 次讀取，而那些讀取沒有任何人在看。改為載入時與切到操作紀錄分頁時才讀', '【★附帶修正·操作紀錄會被洗掉】舊版雲端快照回來會直接取代本機的操作紀錄，本機剛記下、還沒同步上去的那幾筆會消失。改成按需讀取後不再發生', '【用量·營業額回讀】原本每 5 分鐘重讀三家店的財會文件，開十小時約 360 次白讀。改為 30 分鐘，且分頁在背景時跳過；切換月份或門市仍會立即重讀', '【不變】排班、薪資、請假、打卡、帳號、設定的即時同步完全沒動']},
@@ -2668,12 +2669,13 @@ function clearLegacyPunchDoc(){
     if(!confirm('🗑 清除舊打卡文件\n\n舊文件目前有 '+n+' 筆。\n\n**請先確認**：打卡記錄表與出勤報表逐月核對過，資料都在。\n\n清除後這份舊文件就空了（分片裡的資料不受影響）。\n\n確定清除？'))return;
     if(!confirm('再確認一次：真的要清空舊打卡文件的 '+n+' 筆嗎？\n\n（分片已經有一份，這只是移除重複的舊副本）'))return;
     db.collection(fbCol('hrdata')).doc('punchRecords').set({data:[],clearedAt:new Date().toISOString()}).then(function(){
+      _legacyPunchN=0;/* [v4.8.1] 舊文件清空後，當月的權威改回分片 */
       logAudit('打卡','清除舊打卡文件 '+n+' 筆');
       alert('✅ 已清除。往後打卡一律寫入 '+fbCol('punch')+'/{年月}');
     }).catch(function(e){alert('清除失敗：'+e.message)});
   });
 }
-var _punchLoaded=false, _punchUnsub=null;
+var _punchLoaded=false, _punchUnsub=null, _legacyPunchN=0;
 /* 一筆紀錄屬於哪個月的分片 */
 function _pmk(r){var d=r&&r.date?String(r.date):'';return /^\d{4}-\d{2}/.test(d)?d.substring(0,7):'_unknown'}
 /* 依月份把陣列分組 */
@@ -2705,6 +2707,7 @@ function loadPunchShards(){
       try{localStorage.setItem('hm_punch',JSON.stringify(punchRecords))}catch(e){}
     }
     _punchLoaded=true;
+    _legacyPunchN=fromLegacy.length;
     _watchCurrentPunchShard();
     if(typeof refreshPunchDependents==='function')refreshPunchDependents();
     var legacyN=fromLegacy.length;
@@ -2721,7 +2724,18 @@ function _watchCurrentPunchShard(){
   _punchUnsub=db.collection(fbCol('punch')).doc(ym).onSnapshot(function(d){
     if(!d.exists)return;
     var arr=(d.data()||{}).data||[];
-    punchRecords=_mergePunch(punchRecords.filter(function(r){return _pmk(r)!==ym}),arr);
+    /* [v4.8.1] ★ 修正 v4.7.0 的回歸：這裡原本是
+         punchRecords = 濾掉所有當月的 + 分片內容
+       這假設「當月資料全部在分片裡」。但在還沒搬移的相容期，當月的打卡是在**舊文件**裡，
+       分片只要一存在（有人用新版打了一次卡就會建立），這一行就把舊文件來的當月紀錄
+       整批濾掉 —— 畫面上當月打卡就「全部消失」了（資料其實沒少，只是沒顯示）。
+       改為：舊文件還有資料時只做合併、絕不濾除；等搬移並清空舊文件後，
+       當月的權威才回到分片，那時才用取代式（這樣別台裝置刪除的紀錄才反映得出來）。 */
+    if(_legacyPunchN>0){
+      punchRecords=_mergePunch(punchRecords,arr);
+    }else{
+      punchRecords=_mergePunch(punchRecords.filter(function(r){return _pmk(r)!==ym}),arr);
+    }
     try{localStorage.setItem('hm_punch',JSON.stringify(punchRecords))}catch(e){}
     if(typeof refreshPunchDependents==='function')refreshPunchDependents();
   },function(){});
