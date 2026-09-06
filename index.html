@@ -1284,11 +1284,12 @@ function requireRole(level,what){
     try{logAudit('\u6b0a\u9650\u651d\u622a',what+'\uff08'+((curUser&&curUser.role)||'\u672a\u767b\u5165')+'\uff09')}catch(_e){}}
   return ok;
 }
-var SYS_VERSION='4.9.12';
-var SYS_BUILD='20260906005';
+var SYS_VERSION='4.9.13';
+var SYS_BUILD='20260906006';
 function renderVersionLabels(){try{var v='v'+SYS_VERSION;var b=document.getElementById('btn-ver');if(b)b.textContent=v;var l=document.getElementById('login-ver');if(l)l.textContent=v;var s=document.getElementById('sop-ver');if(s)s.textContent=v+' | Build '+SYS_BUILD}catch(e){}}
 renderVersionLabels();
 var SYS_CHANGELOG=[
+{ver:'4.9.13',build:'20260906006',date:'2026-09-06',changes:['【★★修正·補打卡無法覆蓋打錯的紀錄】老闆回報「員工若打卡錯誤，使用補打卡功能無法覆蓋原有紀錄」。查下來全系統有三條路徑會建立打卡紀錄，但只有第一條有覆蓋機制：①員工自己按打卡（doPunch）—— 會問你要不要覆蓋、把舊的標記作廢；②老闆／店長的「代打卡」（doProxyPunch）—— 完全沒有；③補打卡申請核准（approvePunchApply）—— 完全沒有。所以員工 09:07 打錯、申請補成 08:00、主管核准之後，同一天會同時存在 09:07 與 08:00 兩筆上班卡，錯的那筆還在。之後遲到分鐘、工時、全勤判定會以先找到的那一筆為準 —— 也就是錯的那筆。實測：核准前 1 筆（09:07），核准後變成 2 筆。','【修正做法】把 doPunch 原有的覆蓋邏輯抽成單一函式 voidDupPunch()，三條路徑共用（模組5：同一條規則只留一份）。核准或代打卡時若發現同一天同一種卡已經有紀錄，會先問「要用這次的補打卡覆蓋它嗎」並顯示舊的時間；確定就把舊那筆標記作廢（不實體刪除，雲端仍查得到軌跡）再寫新的，取消則完全不動、單據維持待審核不會被誤標成已核准。實測三種情境：補打卡核准後只剩 08:00 一筆、代打卡後只剩 08:00 一筆、按取消時維持原狀且單據仍是待審核。','【同步·員工APP v3.30.0】APP 端主管核准補打卡也是同樣問題，已一併修正，兩邊用同一套規則。APP 因為狀態是先寫才拿得到單據內容，改為直接作廢並在成功訊息告知原本那筆幾點被作廢，不再多跳一次詢問。']},
 {ver:'4.9.12',build:'20260906005',date:'2026-09-06',changes:['【★修正·排班浮層把休息日加班顯示成「正常 4h／加班 0h」】老闆選了「休息日加班＋固定時薪 230」，浮層下方卻顯示「工時 4h、正常 4h、加班 0h」，看起來像系統沒把它當加班、還是照月薪算。根因：calcE() 不分班別，一律套平日邏輯「8 小時內算正常、超過才算加班」；但休息日加班整段本來就都是加班。已改為依班別分開顯示（休息日加班：正常顯示「─」、加班顯示全部工時），並直接把金額算給你看：選固定時薪顯示「4h × 230 元 ＝ NT$920，計入加班費；月薪照領、不會被扣」；選法定顯示倍率、時薪基數與試算金額。切換計薪方式或改時薪金額時會即時重算。一般「上班」的正常／加班顯示邏輯完全沒動。','【★補回·批量的「固定時薪」在 v4.9.11 沒有真的進到程式】v4.9.11 的變更紀錄寫了「批量時間設定可填休息日加班的固定時薪」，但我在後續查別的問題時把工作檔覆蓋掉，那段程式並沒有真的寫進去 —— 等於變更紀錄描述了一個不存在的功能。本版已重新加入並實測：批量選「休息日加班」會出現「法定／固定時薪」選擇，填 230 排 4 小時，寫入的格子帶 otRate:230，加班費 920、加班時數 4 小時。','【驗算·休息日加班確實是「月薪不動、另外加一筆」】月薪 35,000＋伙食 2,400、週六休假的基準月為應發 39,400。加排一天 4 小時休息日加班後：本薪仍是 35,000（完全沒被動到）、休息日加班費 920、應發 40,320。選法定倍率則為 984（時薪基數 164 元），應發 40,385。']},
 {ver:'4.9.11',build:'20260906004',date:'2026-09-06',changes:['【★新增·批量時間設定可填「休息日加班的固定時薪」】老闆問「本店員工假日上班要另外以時薪計算，系統該怎麼設計」。查下去發現系統本來就有 —— 排班格「休息日加班」的計薪方式可以選「固定時薪」，填多少就是 時數×該時薪。但那個選項只做在「單日編輯」，批量時間設定沒有；一次要幫五個人排好幾個週六時只能用批量，而批量裡唯一填得了時薪的就是支援班 —— 這就是為什麼會拿支援班當假日時薪用。已在批量視窗補上同樣的「法定(1.34/1.67/2.67)／固定時薪」選擇與時薪欄位。實測：批量填 230、排 4 小時，寫入的格子帶 otRate:230，加班費 920，加班時數 4 小時。','【說明·假日以時薪計算應該用哪一種】金額上「休息日加班·固定時薪 230」與「支援班·時薪 230」都是 4h×230＝920，一模一樣；但支援班不會計入加班時數，勞基法§32 的 46 小時上限檢查抓不到，勞檢出勤上也不是法定的加班類別，而且成本會被歸到支援門市。本店的假日上班一律用「休息日加班」。']},
 {ver:'4.9.10',build:'20260906003',date:'2026-09-06',changes:['【★★算錯錢·本店員工可以被排成「支援本店」，月薪照領又多領一筆】老闆提問「本店員工能夠支援本店嗎？」查下去發現：單日編輯的支援門市下拉在 v4.5.0 已排除本店，但「按下套用」時完全沒有再檢查；而「批量時間設定」的支援門市下拉根本沒有排除本店，而且預設就選中目前檢視的門市 —— 在台積電店的班表上批量排支援班，預設就是「支援台積電店」。實測：月薪 35,000 的同仁排 4 小時支援自己店，應發從 41,894 變成 42,814（多 920），而月薪一毛沒少，因為月薪是固定的、支援日只是不計入本店工時。用批量整月排下去就是 30 天 × 920 ＝ 27,600 元的重複計薪。已修正三處：批量下拉排除目前檢視的門市、批量套用逐人再擋一次並列出跳過的人、單日編輯按套用時擋下並說明原因。','【新增·揪出已經排進去的支援自己店】上面擋的是「以後不能再排」，但之前已經排進去的資料還在。排班合規檢查現在會把「支援自己門市」的日期逐日列出來並標紅，提醒改成「上班」或「休息日加班」。','【說明·支援班的正確用法】支援班＝去別家店幫忙、由那家店付時薪，成本歸屬到支援門市（suppByStore）。本店的班用「上班」，本店的加班用「休息日加班」。']},
@@ -3562,6 +3563,34 @@ function _punchWriteFail(e){
     b.innerHTML='\u26a0 \u6253\u5361\u7d00\u9304\u5beb\u5165\u96f2\u7aef\u5931\u6557\uff01\u8cc7\u6599\u53ea\u5b58\u5728\u9019\u53f0\u96fb\u8166\uff0c\u8acb\u78ba\u8a8d\u7db2\u8def\u5f8c\u91cd\u8a66\u3002 <span style="text-decoration:underline;cursor:pointer" onclick="this.parentNode.remove()">\u77e5\u9053\u4e86</span>';
   }catch(_){}
 }
+/* ═══════ [v4.9.13] 補打卡覆蓋既有紀錄（共用）═══════
+   老闆回報：「員工若打卡錯誤，使用補打卡功能無法覆蓋原有紀錄」。
+   查下來：員工自己按打卡的 doPunch() 早就有覆蓋邏輯（問你要不要覆蓋、把舊的標記作廢），
+   但另外兩條建立打卡紀錄的路徑完全沒有 ——
+     · 老闆／店長的「代打卡」（doProxyPunch）
+     · 補打卡申請核准（approvePunchApply，以及員工APP 的 mgrApproveMakeup）
+   結果同一天同一種卡會變成兩筆：錯的那筆還在，正確的那筆疊上去。
+   之後遲到分鐘、工時、全勤判定會以先找到的那一筆為準 —— 也就是錯的那筆。
+
+   這裡把 doPunch 的作法抽成單一函式，三條路徑共用（模組5：同一條規則只留一份）。
+   回傳 false 代表使用者取消，呼叫端要中止。
+   ⚠ 依「不實體刪除」原則：舊紀錄是標記作廢後一併寫上雲端（同一個 id，
+     合併時後到的版本會蓋掉先到的），載入時再濾掉，軌跡留得住也不會重複。 */
+function voidDupPunch(eid,date,type,who,srcLabel,silent){
+  var dup=punchRecords.find(function(r){return r&&!r.void&&r.eid===eid&&r.date===date&&r.type===type});
+  if(!dup)return true;
+  if(!silent){
+    if(!confirm((who||'')+' '+date+' 已經有一筆「'+type+'」紀錄（'+String(dup.time||'').substring(0,5)+'）。\n\n要用這次的'+(srcLabel||'補打卡')+'覆蓋它嗎？\n\n確定＝舊的那筆標記作廢，只留新的（雲端仍查得到作廢紀錄）\n取消＝不建立，維持原狀'))return false;
+  }
+  punchRecords=punchRecords.filter(function(r){return r!==dup});
+  try{
+    var _v=Object.assign({},dup,{void:1,voidAt:new Date().toISOString(),
+      voidBy:(curUser&&curUser.user)||'',voidReason:'被'+(srcLabel||'補打卡')+'覆蓋'});
+    savePunchAppend(_v);
+    logAudit('打卡','作廢重複的'+type+'紀錄 '+(who||'')+' '+date+' '+String(dup.time||'').substring(0,5)+'（'+(srcLabel||'補打卡')+'覆蓋）');
+  }catch(_e){}
+  return true;
+}
 function refreshPunchDependents(){function _act(id){var pn=document.getElementById(id);return pn&&pn.classList.contains('active');}try{if(_act('panel-sched')&&typeof renderSched==='function')renderSched();}catch(e){}try{if(_act('panel-pay')&&typeof renderPay==='function')renderPay();}catch(e){}try{if(_act('panel-report')&&typeof renderReport==='function')renderReport();}catch(e){}try{if(_act('panel-attend')&&typeof renderAttend==='function')renderAttend();}catch(e){}}function savePunchFull(){
   try{localStorage.setItem('hm_punch',JSON.stringify(punchRecords))}catch(e){}
   if(db){
@@ -3643,7 +3672,9 @@ function syncPunchToSched(eid,dateStr){var punches=punchRecords.filter(function(
 function renderPunchToday(){var now=new Date();var today=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());var isManager=curUser&&(curUser.role==='老闆'||curUser.role==='店長');var recs=punchRecords.filter(function(r){return r.date===today&&(isManager||(curUser&&r.eid===curUser.empId))}).sort(function(a,b){return a.time>b.time?1:-1});var h='';if(!recs.length){h='<div style="text-align:center;padding:16px;color:var(--gray4);font-size:12px">今日尚無打卡紀錄</div>'}recs.forEach(function(r){var tc=r.type==='上班'?'#166534':r.type==='下班'?'#991b1b':r.type==='外出'?'#92400e':'#0369a1';var bg=r.type==='上班'?'#dcfce7':r.type==='下班'?'#fee2e2':r.type==='外出'?'#fef3c7':'#e0f2fe';h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:4px;background:'+bg+';border-radius:8px;font-size:12px"><span style="font-weight:700;min-width:50px;color:'+tc+'">'+r.type+'</span><span style="font-weight:700">'+r.name+'</span><span style="font-family:monospace;font-weight:700;margin-left:auto">'+r.time+'</span><span style="font-size:10px;color:var(--gray5)">'+r.store+'</span></div>'});document.getElementById('punch-today').innerHTML=h}
 
 
-function doProxyPunch(){if(!requireRole('manager','代打卡'))return;try{var eid=document.getElementById('punch-emp').value;var store=document.getElementById('punch-store').value;var timeVal=document.getElementById('proxy-time').value;var type=document.getElementById('proxy-type').value;var reason=document.getElementById('proxy-reason').value;if(!eid){alert('請選擇員工');return}if(!timeVal){alert('請輸入補打卡時間');return}if(!reason){alert('請輸入補打卡原因');return}var e=staff.find(function(x){return x.id===eid});if(!e){alert('找不到員工資料');return}/* PIN已取消 */var proxyDateEl=document.getElementById('proxy-date');var proxyDate=proxyDateEl?proxyDateEl.value:'';if(!proxyDate)proxyDate=hmDate();var time=timeVal+':00';var proxyBy=curUser?curUser.user:'unknown';var rec={id:'p'+Date.now(),eid:eid,name:e.name,store:store,date:proxyDate,time:time,type:type,gps:'補打卡',dist:null,inRange:null,ts:new Date().toISOString(),proxy:true,proxyBy:proxyBy,proxyReason:reason};punchRecords.push(rec);savePunchAppend(rec);try{syncPunchToSched(eid,proxyDate)}catch(se){}var res=document.getElementById('punch-result');if(res){res.style.display='block';res.style.background='#fef3c7';res.style.color='#92400e';res.innerHTML='<div style="font-size:24px;margin-bottom:4px">📋</div><div style="font-size:18px;font-weight:700">'+e.name+' '+type+'補打卡完成</div><div style="font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace;margin-top:4px">'+time+'</div><div style="font-size:12px;margin-top:6px">日期：'+proxyDate+' 由 '+proxyBy+' 代為補打卡</div>'}logAudit('補打卡',proxyBy+' 代 '+e.name+' '+type+' '+proxyDate+' '+time+' 原因：'+reason);renderPunchToday();document.getElementById('proxy-time').value='';document.getElementById('proxy-reason').value='';alert('✅ 補打卡完成\n\n'+e.name+' '+type+'\n日期：'+proxyDate+'\n時間：'+time)}catch(err){alert('補打卡失敗：'+err.message)}}
+function doProxyPunch(){if(!requireRole('manager','代打卡'))return;try{var eid=document.getElementById('punch-emp').value;var store=document.getElementById('punch-store').value;var timeVal=document.getElementById('proxy-time').value;var type=document.getElementById('proxy-type').value;var reason=document.getElementById('proxy-reason').value;if(!eid){alert('請選擇員工');return}if(!timeVal){alert('請輸入補打卡時間');return}if(!reason){alert('請輸入補打卡原因');return}var e=staff.find(function(x){return x.id===eid});if(!e){alert('找不到員工資料');return}/* PIN已取消 */var proxyDateEl=document.getElementById('proxy-date');var proxyDate=proxyDateEl?proxyDateEl.value:'';if(!proxyDate)proxyDate=hmDate();var time=timeVal+':00';var proxyBy=curUser?curUser.user:'unknown';
+  if(!voidDupPunch(eid,proxyDate,type,e.name,'代打卡'))return;
+  var rec={id:'p'+Date.now(),eid:eid,name:e.name,store:store,date:proxyDate,time:time,type:type,gps:'補打卡',dist:null,inRange:null,ts:new Date().toISOString(),proxy:true,proxyBy:proxyBy,proxyReason:reason};punchRecords.push(rec);savePunchAppend(rec);try{syncPunchToSched(eid,proxyDate)}catch(se){}var res=document.getElementById('punch-result');if(res){res.style.display='block';res.style.background='#fef3c7';res.style.color='#92400e';res.innerHTML='<div style="font-size:24px;margin-bottom:4px">📋</div><div style="font-size:18px;font-weight:700">'+e.name+' '+type+'補打卡完成</div><div style="font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace;margin-top:4px">'+time+'</div><div style="font-size:12px;margin-top:6px">日期：'+proxyDate+' 由 '+proxyBy+' 代為補打卡</div>'}logAudit('補打卡',proxyBy+' 代 '+e.name+' '+type+' '+proxyDate+' '+time+' 原因：'+reason);renderPunchToday();document.getElementById('proxy-time').value='';document.getElementById('proxy-reason').value='';alert('✅ 補打卡完成\n\n'+e.name+' '+type+'\n日期：'+proxyDate+'\n時間：'+time)}catch(err){alert('補打卡失敗：'+err.message)}}
 
 
 function toggleCompExpiry(){var t=document.getElementById('lv-type').value;var w=document.getElementById('lv-comp-wrap');if(w)w.style.display=t==='補休'?'block':'none'}
@@ -3772,6 +3803,7 @@ function approvePunchApply(id){if(!requireRole('manager','核准補卡'))return;
      type=undefined 的髒資料，之後遲到分鐘與工時全部會變成 NaN。 */
   if(pa.kind&&pa.kind!=='補打卡'){alert('這是「'+pa.kind+'」申請，不是補打卡單，不能用這裡核准。\n\n密碼重設請到「帳號管理」直接重設密碼。');return}
   if(!pa.date||!pa.time||!pa.type){alert('這張單缺少日期／時間／類型，無法建立打卡紀錄。\n請退回並請員工重新申請。');return}
+  if(!voidDupPunch(pa.eid,pa.date,pa.type,pa.name,'補打卡申請'))return;
   pa.status='已核准';var _prec3={id:'p'+Date.now(),eid:pa.eid,name:pa.name,store:'',date:pa.date,time:pa.time+':00',type:pa.type,gps:'補打卡申請',dist:null,inRange:null,ts:new Date().toISOString(),proxy:true,proxyBy:'申請核准',proxyReason:pa.reason};punchRecords.push(_prec3);savePunchAppend(_prec3);syncPunchToSched(pa.eid,pa.date);save();logAudit('核准','補打卡 '+pa.name+' '+pa.date);renderPunchApplyList()}
 function rejectPunchApply(id){if(!requireRole('manager','駁回補卡'))return;var pa=punchApplies.find(function(x){return x.id===id});if(!pa)return;
   if(pa.status!=='待審核'){alert('這筆補卡申請已經是「'+pa.status+'」，不能重複處理。');return}
